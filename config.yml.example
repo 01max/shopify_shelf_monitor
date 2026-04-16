@@ -1,0 +1,19 @@
+# Copy to config.yml and fill in your values.
+# Each top-level key is a separate watch.
+
+# Monitor individual products by handle:
+favorite_sneakers:
+  type: products
+  store: my-store.myshopify.com
+  handles:
+    - air-max-90
+    - ultraboost-22
+  rate_limit_ms: 500               # optional, default 500ms between API calls
+  telegram_chat_id: "123456789"    # optional, overrides TELEGRAM_DEFAULT_CHAT_ID
+
+# Monitor an entire collection:
+new_arrivals:
+  type: collection
+  store: my-store.myshopify.com
+  handle: new-arrivals
+  rate_limit_ms: 600
