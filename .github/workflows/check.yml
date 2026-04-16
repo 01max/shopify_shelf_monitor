@@ -1,0 +1,66 @@
+name: Check Shopify Shelf
+
+on:
+  schedule:
+    - cron: "0 */4 * * *"
+  workflow_dispatch:
+    inputs:
+      force_notify:
+        description: 'Force notification even if nothing changed'
+        type: boolean
+        default: false
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.2'
+          bundler-cache: true
+
+      - name: Download previous report
+        uses: dawidd6/action-download-artifact@v9
+        with:
+          name: report
+          path: tmp/previous
+          if_no_artifact_found: ignore
+        continue-on-error: true
+
+      - name: Write config
+        run: echo "$SHELF_MONITOR_CONFIG" > config.yml
+        env:
+          SHELF_MONITOR_CONFIG: ${{ secrets.SHELF_MONITOR_CONFIG }}
+
+      - name: Run shelf check
+        run: bundle exec ruby check.rb
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_DEFAULT_CHAT_ID: ${{ secrets.TELEGRAM_DEFAULT_CHAT_ID }}
+          FORCE_NOTIFY: ${{ inputs.force_notify }}
+
+      - name: Upload report
+        if: always()
+        uses: actions/upload-artifact@v5
+        with:
+          name: report
+          path: tmp/report.json
+          retention-days: 7
+
+      - name: Disable workflow after 3 consecutive failures
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          recent=$(gh run list --workflow=check.yml --limit=3 --json conclusion --jq '[.[].conclusion]')
+          if [ "$recent" = '["failure","failure","failure"]' ]; then
+            echo "3 consecutive failures — disabling workflow"
+            gh workflow disable check.yml
+          fi
