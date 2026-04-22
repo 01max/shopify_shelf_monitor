@@ -5,7 +5,7 @@ require_relative '../../services/collection_watch_service'
 
 RSpec.describe CollectionWatchService do
   let(:logger) { instance_double(Logger, info: nil, warn: nil, debug: nil) }
-  let(:chat_service) { instance_double(Telegram::ChatService, deliver: nil, send_photo: nil) }
+  let(:chat_service) { instance_double(Telegram::ChatService, deliver: nil, send_media_group: nil) }
   let(:client) { instance_double(ShowroomClient) }
   let(:collection) { double('Collection', handle: 'new-arrivals') }
 

@@ -70,39 +70,28 @@ RSpec.describe Telegram::ChatService do
     end
   end
 
-  describe '#send_photo' do
+  describe '#send_media_group' do
     subject(:service) { described_class.new }
 
-    let(:photo_api_url) { "https://api.telegram.org/bot#{bot_token}/sendPhoto" }
+    let(:media_api_url) { "https://api.telegram.org/bot#{bot_token}/sendMediaGroup" }
+    let(:photo_urls) { %w[https://cdn.example.com/a.jpg https://cdn.example.com/b.jpg] }
 
-    it 'posts to the Telegram sendPhoto endpoint' do
-      stub_request(:post, photo_api_url).to_return(status: 200, body: '{"ok":true}')
+    it 'posts to the Telegram sendMediaGroup endpoint with photo media JSON' do
+      stub_request(:post, media_api_url).to_return(status: 200, body: '{"ok":true}')
 
-      service.send_photo('https://cdn.example.com/photo.jpg', caption: 'A product')
+      service.send_media_group(photo_urls)
 
-      expect(WebMock).to have_requested(:post, photo_api_url).with(
-        body: hash_including('chat_id' => chat_id, 'photo' => 'https://cdn.example.com/photo.jpg',
-                             'caption' => 'A product', 'parse_mode' => 'Markdown')
-      )
-    end
-
-    it 'omits caption fields when no caption provided' do
-      stub_request(:post, photo_api_url).to_return(status: 200, body: '{"ok":true}')
-
-      service.send_photo('https://cdn.example.com/photo.jpg')
-
-      expect(WebMock).to have_requested(:post, photo_api_url).with(
-        body: hash_including('chat_id' => chat_id, 'photo' => 'https://cdn.example.com/photo.jpg')
-      )
-      expect(WebMock).not_to have_requested(:post, photo_api_url).with(
-        body: hash_including('caption' => anything)
+      expected_media = [{ type: 'photo', media: photo_urls[0] },
+                        { type: 'photo', media: photo_urls[1] }]
+      expect(WebMock).to have_requested(:post, media_api_url).with(
+        body: hash_including('chat_id' => chat_id, 'media' => expected_media.to_json)
       )
     end
 
     it 'raises on API error' do
-      stub_request(:post, photo_api_url).to_return(status: 400, body: '{"ok":false}')
+      stub_request(:post, media_api_url).to_return(status: 400, body: '{"ok":false}')
 
-      expect { service.send_photo('https://cdn.example.com/photo.jpg') }
+      expect { service.send_media_group(photo_urls) }
         .to raise_error(/Telegram API error/)
     end
   end

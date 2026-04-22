@@ -62,7 +62,7 @@ class ProductWatchService
 
   def notify!(diff)
     result = MessageFormatter.format(@watch_name, diff)
-    return if result[:text].nil? && result[:photos].empty? && !force_notify?
+    return if result[:text].nil? && result[:photo_urls].empty? && !force_notify?
 
     send_notifications(result)
     @logger.info("#{@watch_name}: notification sent")
@@ -70,9 +70,9 @@ class ProductWatchService
 
   def send_notifications(result)
     telegram = Telegram::ChatService.new(**chat_params)
-    result[:photos].each { |photo| telegram.send_photo(photo[:image_url], caption: photo[:caption]) }
+    telegram.send_media_group(result[:photo_urls]) if result[:photo_urls].any?
     text = result[:text]
-    text ||= "[#{@watch_name}] no changes detected (force notify)" if force_notify? && result[:photos].empty?
+    text ||= "[#{@watch_name}] no changes detected (force notify)" if force_notify? && result[:photo_urls].empty?
     telegram.deliver(text) if text
   end
 

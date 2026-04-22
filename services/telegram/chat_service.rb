@@ -31,7 +31,7 @@ module Telegram
     # @return [void]
     def deliver(text, parse_mode: 'Markdown', reply_markup: nil)
       response = HTTParty.post(
-        "https://api.telegram.org/bot#{ENV.fetch('TELEGRAM_BOT_TOKEN')}/sendMessage",
+        api_url('sendMessage'),
         body: build_body(text, parse_mode, reply_markup)
       )
       return if response.success?
@@ -39,20 +39,15 @@ module Telegram
       raise "Telegram API error (#{response.code}): #{response.body}"
     end
 
-    # Sends a photo with an optional caption.
+    # Sends multiple photos as an album.
     #
-    # @param photo_url [String] URL of the image to send
-    # @param caption [String, nil] caption text (Markdown by default)
-    # @param parse_mode [String] Telegram parse mode
+    # @param photo_urls [Array<String>] URLs of the images to send (2-10)
     # @return [void]
-    def send_photo(photo_url, caption: nil, parse_mode: 'Markdown')
-      body = { chat_id: chat_id, photo: photo_url }
-      body[:caption] = caption if caption
-      body[:parse_mode] = parse_mode if caption
-
+    def send_media_group(photo_urls)
+      media = photo_urls.map { |url| { type: 'photo', media: url } }
       response = HTTParty.post(
-        "https://api.telegram.org/bot#{ENV.fetch('TELEGRAM_BOT_TOKEN')}/sendPhoto",
-        body: body
+        api_url('sendMediaGroup'),
+        body: { chat_id: chat_id, media: media.to_json }
       )
       return if response.success?
 
@@ -78,6 +73,10 @@ module Telegram
       end
       chunks << remaining unless remaining.empty?
       chunks
+    end
+
+    def api_url(method)
+      "https://api.telegram.org/bot#{ENV.fetch('TELEGRAM_BOT_TOKEN')}/#{method}"
     end
 
     def build_body(text, parse_mode, reply_markup)
