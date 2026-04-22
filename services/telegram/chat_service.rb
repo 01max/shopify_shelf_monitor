@@ -32,7 +32,8 @@ module Telegram
     def deliver(text, parse_mode: 'Markdown', reply_markup: nil)
       response = HTTParty.post(
         api_url('sendMessage'),
-        body: build_body(text, parse_mode, reply_markup)
+        headers: { 'Content-Type' => 'application/json' },
+        body: build_body(text, parse_mode, reply_markup).to_json
       )
       return if response.success?
 

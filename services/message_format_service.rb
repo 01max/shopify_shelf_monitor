@@ -68,7 +68,7 @@ class MessageFormatService
   # @param number [Integer]
   # @return [String]
   def format_new_product(product, number)
-    "#{number}. [#{product['title']}](#{product['url']}) — #{product['price']}"
+    "#{number}. [#{product['title']}](#{product['url']}) : #{product['price']}"
   end
 
   # @param changes [Array<Product::DiffService::ProductChange>]

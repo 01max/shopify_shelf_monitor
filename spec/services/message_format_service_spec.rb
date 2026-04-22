@@ -35,7 +35,7 @@ RSpec.describe MessageFormatService do
       diff = empty_diff.merge(new_products: [product])
       result = described_class.new('my_watch', diff).call
 
-      expect(result[:text]).to include('1. [Air Max 90](https://store.myshopify.com/products/air-max-90) — 120.00')
+      expect(result[:text]).to include('1. [Air Max 90](https://store.myshopify.com/products/air-max-90) : 120.00')
     end
 
     it 'numbers multiple new products in order' do

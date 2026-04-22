@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 # Compares current product snapshots against previous ones and returns a structured diff.
-# Pure logic — no side effects, no API calls, no notifications.
+# Pure logic, no side effects, no API calls, no notifications.
 module Product
   # Product::DiffService
   class DiffService
