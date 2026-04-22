@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
 require 'spec_helper'
-require_relative '../../services/change_detector'
+require_relative '../../services/change_detection_service'
 
-RSpec.describe ChangeDetector do
+RSpec.describe ChangeDetectionService do
   def product(handle: 'air-max-90', title: 'Air Max 90', price: '120.00', available: true, variants: [])
     { 'handle' => handle, 'title' => title, 'price' => price, 'available' => available, 'variants' => variants }
   end
@@ -12,10 +12,10 @@ RSpec.describe ChangeDetector do
     { 'title' => title, 'price' => price, 'available' => available }
   end
 
-  describe '.detect' do
+  describe '#call' do
     it 'returns empty diff when nothing changed' do
       products = [product]
-      diff = described_class.detect(products, products)
+      diff = described_class.new(products, products).call
 
       expect(diff[:new_products]).to be_empty
       expect(diff[:removed_products]).to be_empty
@@ -26,7 +26,7 @@ RSpec.describe ChangeDetector do
       previous = [product(price: '130.00')]
       current = [product(price: '120.00')]
 
-      diff = described_class.detect(current, previous)
+      diff = described_class.new(current, previous).call
 
       expect(diff[:changes]).to contain_exactly(
         described_class::Change.new(handle: 'air-max-90', field: 'price',
@@ -38,7 +38,7 @@ RSpec.describe ChangeDetector do
       previous = [product(available: true)]
       current = [product(available: false)]
 
-      diff = described_class.detect(current, previous)
+      diff = described_class.new(current, previous).call
 
       expect(diff[:changes]).to contain_exactly(
         described_class::Change.new(handle: 'air-max-90', field: 'available',
@@ -50,7 +50,7 @@ RSpec.describe ChangeDetector do
       previous = [product(variants: [variant(price: '130.00')])]
       current = [product(variants: [variant(price: '120.00')])]
 
-      diff = described_class.detect(current, previous)
+      diff = described_class.new(current, previous).call
 
       expect(diff[:changes]).to contain_exactly(
         described_class::Change.new(handle: 'air-max-90', field: 'variant[Size 10].price',
@@ -62,7 +62,7 @@ RSpec.describe ChangeDetector do
       previous = [product(variants: [variant(available: true)])]
       current = [product(variants: [variant(available: false)])]
 
-      diff = described_class.detect(current, previous)
+      diff = described_class.new(current, previous).call
 
       expect(diff[:changes]).to contain_exactly(
         described_class::Change.new(handle: 'air-max-90', field: 'variant[Size 10].available',
@@ -74,7 +74,7 @@ RSpec.describe ChangeDetector do
       previous = []
       current = [product]
 
-      diff = described_class.detect(current, previous)
+      diff = described_class.new(current, previous).call
 
       expect(diff[:new_products]).to eq([product])
       expect(diff[:changes]).to be_empty
@@ -84,7 +84,7 @@ RSpec.describe ChangeDetector do
       previous = [product]
       current = []
 
-      diff = described_class.detect(current, previous)
+      diff = described_class.new(current, previous).call
 
       expect(diff[:removed_products]).to eq([product])
       expect(diff[:changes]).to be_empty
@@ -94,7 +94,7 @@ RSpec.describe ChangeDetector do
       previous = [product(price: '130.00', available: true)]
       current = [product(price: '120.00', available: false)]
 
-      diff = described_class.detect(current, previous)
+      diff = described_class.new(current, previous).call
 
       expect(diff[:changes].size).to eq(2)
       expect(diff[:changes].map(&:field)).to contain_exactly('price', 'available')
@@ -103,7 +103,7 @@ RSpec.describe ChangeDetector do
     it 'treats first run as all new products' do
       current = [product, product(handle: 'ultraboost', title: 'Ultraboost')]
 
-      diff = described_class.detect(current, [])
+      diff = described_class.new(current, []).call
 
       expect(diff[:new_products].size).to eq(2)
       expect(diff[:changes]).to be_empty

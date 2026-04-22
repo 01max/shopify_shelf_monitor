@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative 'change_detector'
+require_relative 'change_detection_service'
 
 # Formats a ChangeDetector diff into a Telegram Markdown message.
 class MessageFormatService

@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 require_relative 'showroom_client'
-require_relative 'change_detector'
+require_relative 'change_detection_service'
 require_relative 'message_format_service'
 require_relative 'telegram/chat_service'
 
@@ -26,7 +26,7 @@ class CollectionWatchService
   def call
     collection = @client.find_collection(@params['handle'])
     current_products = fetch_products(collection)
-    diff = ChangeDetector.detect(current_products, @previous_products)
+    diff = ChangeDetectionService.new(current_products, @previous_products).call
     notify!(diff)
 
     { watch_name: @watch_name, type: 'collection', status: 'ok',

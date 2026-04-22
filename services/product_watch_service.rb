@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 require_relative 'showroom_client'
-require_relative 'change_detector'
+require_relative 'change_detection_service'
 require_relative 'message_format_service'
 require_relative 'telegram/chat_service'
 
@@ -24,7 +24,7 @@ class ProductWatchService
   # @return [Hash] result with :watch_name, :type, :status, :products
   def call
     current_products = fetch_products
-    diff = ChangeDetector.detect(current_products, @previous_products)
+    diff = ChangeDetectionService.new(current_products, @previous_products).call
     notify!(diff)
 
     { watch_name: @watch_name, type: 'products', status: 'ok', products: current_products }

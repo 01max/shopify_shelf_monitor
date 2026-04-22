@@ -91,7 +91,7 @@ RSpec.describe MessageFormatService do
     end
 
     it 'formats price changes' do
-      change = ChangeDetector::Change.new(
+      change = ChangeDetectionService::Change.new(
         handle: 'air-max-90', field: 'price',
         previous_value: '130.00', current_value: '120.00'
       )
@@ -102,7 +102,7 @@ RSpec.describe MessageFormatService do
     end
 
     it 'formats availability changes' do
-      change = ChangeDetector::Change.new(
+      change = ChangeDetectionService::Change.new(
         handle: 'air-max-90', field: 'available',
         previous_value: true, current_value: false
       )
@@ -113,7 +113,7 @@ RSpec.describe MessageFormatService do
     end
 
     it 'formats variant-level changes' do
-      change = ChangeDetector::Change.new(
+      change = ChangeDetectionService::Change.new(
         handle: 'air-max-90', field: 'variant[Size 10].price',
         previous_value: '130.00', current_value: '120.00'
       )
@@ -131,7 +131,7 @@ RSpec.describe MessageFormatService do
     end
 
     it 'combines all sections' do
-      change = ChangeDetector::Change.new(
+      change = ChangeDetectionService::Change.new(
         handle: 'ultraboost', field: 'price',
         previous_value: '180.00', current_value: '160.00'
       )
