@@ -76,9 +76,9 @@ class MessageFormatService
   def format_changes(changes)
     return nil if changes.nil? || changes.empty?
 
-    lines = changes.group_by(&:handle).map do |_handle, product_changes|
+    lines = changes.group_by(&:handle).each_with_index.map do |(_handle, product_changes), i|
       first = product_changes.first
-      header = "[#{first.title}](#{first.url}):"
+      header = "#{i+1}. [#{first.title}](#{first.url}):"
       field_lines = product_changes.map { |c| "  - #{c.field}: `#{c.previous_value}` → `#{c.current_value}`" }
       "#{header}\n#{field_lines.join("\n")}"
     end
