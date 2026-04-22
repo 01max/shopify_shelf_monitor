@@ -84,9 +84,10 @@ module Telegram
     # @param text [String]
     # @param parse_mode [String]
     # @param reply_markup [Hash, nil]
-    # @return [Hash]
+    # @return [Hash] request body with link previews disabled
     def build_body(text, parse_mode, reply_markup)
-      body = { chat_id: chat_id, text: text, parse_mode: parse_mode }
+      body = { chat_id: chat_id, text: text, parse_mode: parse_mode,
+               link_preview_options: { is_disabled: true } }
       body[:reply_markup] = reply_markup.to_json if reply_markup
       body
     end
