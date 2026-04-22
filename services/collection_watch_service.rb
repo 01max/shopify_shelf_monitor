@@ -58,7 +58,7 @@ class CollectionWatchService
   end
 
   def notify!(diff)
-    result = MessageFormatter.format(@watch_name, diff)
+    result = MessageFormatter.new(@watch_name, diff).call
     return if result[:text].nil? && result[:photo_urls].empty? && !force_notify?
 
     send_notifications(result)
