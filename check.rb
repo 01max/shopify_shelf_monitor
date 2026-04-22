@@ -53,6 +53,6 @@ rescue StandardError => e
   success = false
 end
 
-ReportWriter.write(results)
+ReportWriter.new(results).call
 
 exit(success ? 0 : 1)

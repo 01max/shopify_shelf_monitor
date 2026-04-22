@@ -16,21 +16,21 @@ RSpec.describe ReportWriter do
     FileUtils.remove_entry(tmpdir)
   end
 
-  describe '.write' do
+  describe '#call' do
     it 'creates the report file' do
-      described_class.write([])
+      described_class.new([]).call
 
       expect(File.exist?(report_path)).to be true
     end
 
     it 'writes valid JSON' do
-      described_class.write([])
+      described_class.new([]).call
 
       expect { JSON.parse(File.read(report_path)) }.not_to raise_error
     end
 
     it 'includes a generated_at timestamp' do
-      described_class.write([])
+      described_class.new([]).call
       report = JSON.parse(File.read(report_path))
 
       expect(report).to have_key('generated_at')
@@ -41,7 +41,7 @@ RSpec.describe ReportWriter do
       results = [{ watch_name: 'sneakers', type: 'products', status: 'ok',
                    products: [{ 'handle' => 'air-max-90' }] }]
 
-      described_class.write(results)
+      described_class.new(results).call
       report = JSON.parse(File.read(report_path))
       watch = report['watches'].first
 
@@ -55,7 +55,7 @@ RSpec.describe ReportWriter do
       results = [{ watch_name: 'arrivals', type: 'collection', status: 'ok',
                    products: [{ 'handle' => 'shoe-a' }], products_count: 1 }]
 
-      described_class.write(results)
+      described_class.new(results).call
       report = JSON.parse(File.read(report_path))
       watch = report['watches'].first
 
@@ -68,7 +68,7 @@ RSpec.describe ReportWriter do
     it 'serializes an error result' do
       results = [{ watch_name: 'broken', type: 'products', error: 'connection failed' }]
 
-      described_class.write(results)
+      described_class.new(results).call
       report = JSON.parse(File.read(report_path))
       watch = report['watches'].first
 
@@ -81,7 +81,7 @@ RSpec.describe ReportWriter do
       nested_path = File.join(tmpdir, 'nested', 'report.json')
       stub_const('ReportWriter::REPORT_PATH', nested_path)
 
-      described_class.write([])
+      described_class.new([]).call
 
       expect(File.exist?(nested_path)).to be true
     end
