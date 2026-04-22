@@ -2,14 +2,14 @@
 
 require 'spec_helper'
 require 'tmpdir'
-require_relative '../../services/report_writer'
+require_relative '../../services/report_build_service'
 
-RSpec.describe ReportWriter do
+RSpec.describe ReportBuildService do
   let(:tmpdir) { Dir.mktmpdir }
   let(:report_path) { File.join(tmpdir, 'report.json') }
 
   before do
-    stub_const('ReportWriter::REPORT_PATH', report_path)
+    stub_const('ReportBuildService::REPORT_PATH', report_path)
   end
 
   after do
@@ -79,7 +79,7 @@ RSpec.describe ReportWriter do
 
     it 'creates the directory if it does not exist' do
       nested_path = File.join(tmpdir, 'nested', 'report.json')
-      stub_const('ReportWriter::REPORT_PATH', nested_path)
+      stub_const('ReportBuildService::REPORT_PATH', nested_path)
 
       described_class.new([]).call
 

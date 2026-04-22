@@ -5,7 +5,7 @@ require 'json'
 require 'time'
 
 # Writes a JSON report to a file for later consumption.
-class ReportWriter
+class ReportBuildService
   REPORT_PATH = File.expand_path('../tmp/report.json', __dir__)
 
   # @param results [Array<Hash>] collected return values from watch services

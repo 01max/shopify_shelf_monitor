@@ -6,7 +6,7 @@ require 'yaml'
 
 require_relative 'services/product_watch_service'
 require_relative 'services/collection_watch_service'
-require_relative 'services/report_writer'
+require_relative 'services/report_build_service'
 
 unless ENV['CI']
   require 'dotenv'
@@ -53,6 +53,6 @@ rescue StandardError => e
   success = false
 end
 
-ReportWriter.new(results).call
+ReportBuildService.new(results).call
 
 exit(success ? 0 : 1)
