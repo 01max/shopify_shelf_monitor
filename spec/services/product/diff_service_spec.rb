@@ -4,8 +4,9 @@ require 'spec_helper'
 require_relative '../../../services/product/diff_service'
 
 RSpec.describe Product::DiffService do
-  def product(handle: 'air-max-90', title: 'Air Max 90', price: '120.00', available: true, variants: [])
-    { 'handle' => handle, 'title' => title, 'price' => price, 'available' => available, 'variants' => variants }
+  def product(handle: 'air-max-90', title: 'Air Max 90', price: '120.00', available: true, variants: [], url: 'https://store.example.com/products/air-max-90', image: nil)
+    { 'handle' => handle, 'title' => title, 'price' => price, 'available' => available,
+      'url' => url, 'image' => image, 'variants' => variants }
   end
 
   def variant(title: 'Size 10', price: '120.00', available: true)
@@ -29,8 +30,9 @@ RSpec.describe Product::DiffService do
       diff = described_class.new(current, previous).call
 
       expect(diff[:changes]).to contain_exactly(
-        described_class::ProductChange.new(handle: 'air-max-90', field: 'price',
-                                           previous_value: '130.00', current_value: '120.00')
+        described_class::ProductChange.new(handle: 'air-max-90', title: 'Air Max 90',
+                                           url: 'https://store.example.com/products/air-max-90', image: nil,
+                                           field: 'price', previous_value: '130.00', current_value: '120.00')
       )
     end
 
@@ -41,8 +43,9 @@ RSpec.describe Product::DiffService do
       diff = described_class.new(current, previous).call
 
       expect(diff[:changes]).to contain_exactly(
-        described_class::ProductChange.new(handle: 'air-max-90', field: 'available',
-                                           previous_value: true, current_value: false)
+        described_class::ProductChange.new(handle: 'air-max-90', title: 'Air Max 90',
+                                           url: 'https://store.example.com/products/air-max-90', image: nil,
+                                           field: 'available', previous_value: true, current_value: false)
       )
     end
 
@@ -53,7 +56,9 @@ RSpec.describe Product::DiffService do
       diff = described_class.new(current, previous).call
 
       expect(diff[:changes]).to contain_exactly(
-        described_class::ProductChange.new(handle: 'air-max-90', field: 'variant[Size 10].price',
+        described_class::ProductChange.new(handle: 'air-max-90', title: 'Air Max 90',
+                                           url: 'https://store.example.com/products/air-max-90', image: nil,
+                                           field: 'variant[Size 10].price',
                                            previous_value: '130.00', current_value: '120.00')
       )
     end
@@ -65,7 +70,9 @@ RSpec.describe Product::DiffService do
       diff = described_class.new(current, previous).call
 
       expect(diff[:changes]).to contain_exactly(
-        described_class::ProductChange.new(handle: 'air-max-90', field: 'variant[Size 10].available',
+        described_class::ProductChange.new(handle: 'air-max-90', title: 'Air Max 90',
+                                           url: 'https://store.example.com/products/air-max-90', image: nil,
+                                           field: 'variant[Size 10].available',
                                            previous_value: true, current_value: false)
       )
     end

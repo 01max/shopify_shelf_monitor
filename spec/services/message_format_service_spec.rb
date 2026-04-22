@@ -90,37 +90,75 @@ RSpec.describe MessageFormatService do
       expect(result[:photo_urls]).to be_empty
     end
 
-    it 'formats price changes' do
+    it 'formats price changes with title and url' do
       change = Product::DiffService::ProductChange.new(
-        handle: 'air-max-90', field: 'price',
-        previous_value: '130.00', current_value: '120.00'
+        handle: 'air-max-90', title: 'Air Max 90',
+        url: 'https://store.myshopify.com/products/air-max-90', image: nil,
+        field: 'price', previous_value: '130.00', current_value: '120.00'
       )
       diff = empty_diff.merge(changes: [change])
       result = described_class.new('my_watch', diff).call
 
-      expect(result[:text]).to include('air-max-90: price `130.00` → `120.00`')
+      expect(result[:text]).to include('[Air Max 90](https://store.myshopify.com/products/air-max-90):')
+      expect(result[:text]).to include('  - price: `130.00` → `120.00`')
     end
 
     it 'formats availability changes' do
       change = Product::DiffService::ProductChange.new(
-        handle: 'air-max-90', field: 'available',
-        previous_value: true, current_value: false
+        handle: 'air-max-90', title: 'Air Max 90',
+        url: 'https://store.myshopify.com/products/air-max-90', image: nil,
+        field: 'available', previous_value: true, current_value: false
       )
       diff = empty_diff.merge(changes: [change])
       result = described_class.new('my_watch', diff).call
 
-      expect(result[:text]).to include('air-max-90: available `true` → `false`')
+      expect(result[:text]).to include('  - available: `true` → `false`')
     end
 
     it 'formats variant-level changes' do
       change = Product::DiffService::ProductChange.new(
-        handle: 'air-max-90', field: 'variant[Size 10].price',
-        previous_value: '130.00', current_value: '120.00'
+        handle: 'air-max-90', title: 'Air Max 90',
+        url: 'https://store.myshopify.com/products/air-max-90', image: nil,
+        field: 'variant[Size 10].price', previous_value: '130.00', current_value: '120.00'
       )
       diff = empty_diff.merge(changes: [change])
       result = described_class.new('my_watch', diff).call
 
-      expect(result[:text]).to include('variant[Size 10].price `130.00` → `120.00`')
+      expect(result[:text]).to include('  - variant[Size 10].price: `130.00` → `120.00`')
+    end
+
+    it 'groups multiple changes for the same product under one header' do
+      changes = [
+        Product::DiffService::ProductChange.new(
+          handle: 'air-max-90', title: 'Air Max 90',
+          url: 'https://store.myshopify.com/products/air-max-90', image: nil,
+          field: 'price', previous_value: '130.00', current_value: '120.00'
+        ),
+        Product::DiffService::ProductChange.new(
+          handle: 'air-max-90', title: 'Air Max 90',
+          url: 'https://store.myshopify.com/products/air-max-90', image: nil,
+          field: 'variant[Size 10].price', previous_value: '130.00', current_value: '120.00'
+        )
+      ]
+      diff = empty_diff.merge(changes: changes)
+      result = described_class.new('my_watch', diff).call
+
+      expect(result[:text].scan('[Air Max 90]').size).to eq(1)
+      expect(result[:text]).to include('  - price:')
+      expect(result[:text]).to include('  - variant[Size 10].price:')
+    end
+
+    it 'returns photo_urls for changed products with images' do
+      change = Product::DiffService::ProductChange.new(
+        handle: 'air-max-90', title: 'Air Max 90',
+        url: 'https://store.myshopify.com/products/air-max-90',
+        image: 'https://cdn.shopify.com/air-max-90.jpg',
+        field: 'price', previous_value: '130.00', current_value: '120.00'
+      )
+      diff = empty_diff.merge(changes: [change])
+      result = described_class.new('my_watch', diff).call
+
+      expect(result[:photo_urls]).to eq(['https://cdn.shopify.com/air-max-90.jpg'])
     end
 
     it 'formats removed products' do
@@ -132,8 +170,9 @@ RSpec.describe MessageFormatService do
 
     it 'combines all sections' do
       change = Product::DiffService::ProductChange.new(
-        handle: 'ultraboost', field: 'price',
-        previous_value: '180.00', current_value: '160.00'
+        handle: 'ultraboost', title: 'Ultraboost',
+        url: 'https://store.myshopify.com/products/ultraboost', image: nil,
+        field: 'price', previous_value: '180.00', current_value: '160.00'
       )
       removed = { 'handle' => 'old-shoe', 'title' => 'Old Shoe' }
       diff = { new_products: [product], changes: [change], removed_products: [removed] }

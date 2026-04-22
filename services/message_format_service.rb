@@ -14,7 +14,7 @@ class MessageFormatService
 
   # @return [Hash] with :text (String or nil) and :photo_urls (Array<String>)
   def call
-    { text: build_text, photo_urls: new_product_photo_urls }
+    { text: build_text, photo_urls: new_product_photo_urls + changed_product_photo_urls }
   end
 
   private
@@ -41,6 +41,19 @@ class MessageFormatService
     products.filter_map { |p| p['image'] }
   end
 
+  # Returns image URLs for changed products (one per unique product).
+  #
+  # @return [Array<String>]
+  def changed_product_photo_urls
+    changes = @diff[:changes]
+    return [] if changes.nil? || changes.empty?
+
+    unique_products = changes.group_by(&:handle).values.map(&:first)
+    return [] if unique_products.size > DETAIL_LIMIT
+
+    unique_products.filter_map(&:image)
+  end
+
   # @param products [Array<Hash>]
   # @return [String, nil]
   def format_new_products(products)
@@ -63,14 +76,13 @@ class MessageFormatService
   def format_changes(changes)
     return nil if changes.nil? || changes.empty?
 
-    lines = changes.map { |c| format_change(c) }
+    lines = changes.group_by(&:handle).map do |_handle, product_changes|
+      first = product_changes.first
+      header = "[#{first.title}](#{first.url}):"
+      field_lines = product_changes.map { |c| "  - #{c.field}: `#{c.previous_value}` → `#{c.current_value}`" }
+      "#{header}\n#{field_lines.join("\n")}"
+    end
     "*Changes:*\n#{lines.join("\n")}"
-  end
-
-  # @param change [Product::DiffService::ProductChange]
-  # @return [String]
-  def format_change(change)
-    "- #{change.handle}: #{change.field} `#{change.previous_value}` → `#{change.current_value}`"
   end
 
   # @param products [Array<Hash>]
