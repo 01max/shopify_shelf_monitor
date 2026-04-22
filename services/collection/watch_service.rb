@@ -1,13 +1,15 @@
 # frozen_string_literal: true
 
-require_relative 'showroom_client'
-require_relative 'change_detection_service'
-require_relative 'message_format_service'
-require_relative 'telegram/chat_service'
+require_relative '../showroom_client'
+require_relative '../change_detection_service'
+require_relative '../message_format_service'
+require_relative '../telegram/chat_service'
 
-# Orchestrates the monitoring flow for a +type: products+ watch.
-# Fetches each product by handle, detects changes, and sends Telegram notifications.
-class ProductWatchService
+# Orchestrates the monitoring flow for a +type: collection+ watch.
+# Fetches the collection and its products, detects changes (new/removed products,
+# price and availability changes), and sends Telegram notifications.
+module Collection
+  class WatchService
   # @param watch_name [String]
   # @param params [Hash] watch config from config.yml
   # @param logger [Logger]
@@ -21,25 +23,21 @@ class ProductWatchService
                                  rate_limit_ms: params.fetch('rate_limit_ms', ShowroomClient::DEFAULT_RATE_LIMIT_MS))
   end
 
-  # @return [Hash] result with :watch_name, :type, :status, :products
+  # @return [Hash] result with :watch_name, :type, :status, :products, :products_count
   def call
-    current_products = fetch_products
+    collection = @client.find_collection(@params['handle'])
+    current_products = fetch_products(collection)
     diff = ChangeDetectionService.new(current_products, @previous_products).call
     notify!(diff)
 
-    { watch_name: @watch_name, type: 'products', status: 'ok', products: current_products }
+    { watch_name: @watch_name, type: 'collection', status: 'ok',
+      products: current_products, products_count: current_products.size }
   end
 
   private
 
-  def fetch_products
-    @params.fetch('handles', []).filter_map do |handle|
-      product = @client.find_product(handle)
-      snapshot_product(product)
-    rescue Showroom::NotFound
-      @logger.warn("#{@watch_name}: product '#{handle}' not found, skipping")
-      nil
-    end
+  def fetch_products(collection)
+    @client.collection_products(collection).map { |p| snapshot_product(p) }
   end
 
   def snapshot_product(product)
@@ -84,5 +82,6 @@ class ProductWatchService
     return {} unless @params.key?('telegram_chat_id')
 
     { chat_id: @params['telegram_chat_id'] }
+  end
   end
 end

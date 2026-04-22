@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
 require 'spec_helper'
-require_relative '../../services/collection_watch_service'
+require_relative '../../../services/collection/watch_service'
 
-RSpec.describe CollectionWatchService do
+RSpec.describe Collection::WatchService do
   let(:logger) { instance_double(Logger, info: nil, warn: nil, debug: nil) }
   let(:chat_service) { instance_double(Telegram::ChatService, deliver: nil, send_media_group: nil) }
   let(:client) { instance_double(ShowroomClient) }

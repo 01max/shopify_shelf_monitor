@@ -4,8 +4,8 @@ require 'json'
 require 'logger'
 require 'yaml'
 
-require_relative 'services/product_watch_service'
-require_relative 'services/collection_watch_service'
+require_relative 'services/product/watch_service'
+require_relative 'services/collection/watch_service'
 require_relative 'services/report_build_service'
 
 unless ENV['CI']
@@ -43,7 +43,7 @@ success = true
 results = []
 
 config.each do |watch_name, params|
-  service_class = params['type'] == 'collection' ? CollectionWatchService : ProductWatchService
+  service_class = params['type'] == 'collection' ? Collection::WatchService : Product::WatchService
   previous_products = previous_data.dig(watch_name, 'products')
 
   results << service_class.new(watch_name, params, logger, previous_products).call
