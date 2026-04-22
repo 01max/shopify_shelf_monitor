@@ -13,25 +13,32 @@ unless ENV['CI']
   Dotenv.load
 end
 
-logger = Logger.new($stdout)
-logger.progname = 'shelf_monitor'
-
-config_path = File.expand_path('config.yml', __dir__)
-
-unless File.exist?(config_path)
-  logger.error("config.yml not found at #{config_path}")
-  exit 1
+def build_logger
+  logger = Logger.new($stdout)
+  logger.progname = 'shelf_monitor'
+  logger
 end
 
-config = YAML.safe_load_file(config_path)
+def load_config(logger)
+  config_path = File.expand_path('config.yml', __dir__)
 
-if config.nil? || config.empty?
-  logger.error('config.yml is empty or invalid')
-  exit 1
+  unless File.exist?(config_path)
+    logger.error("config.yml not found at #{config_path}")
+    exit 1
+  end
+
+  config = YAML.safe_load_file(config_path)
+
+  if config.nil? || config.empty?
+    logger.error('config.yml is empty or invalid')
+    exit 1
+  end
+
+  config
 end
 
-previous_report_path = File.expand_path('tmp/report.json', __dir__)
-previous_data = begin
+def load_previous_data(logger)
+  previous_report_path = File.expand_path('tmp/report.json', __dir__)
   data = JSON.parse(File.read(previous_report_path))
   data['watches'].to_h { |w| [w['watch'], w] }
 rescue StandardError
@@ -39,20 +46,31 @@ rescue StandardError
   {}
 end
 
-success = true
-results = []
-
-config.each do |watch_name, params|
+def run_watch(watch_name, params, logger, previous_data)
   service_class = params['type'] == 'collection' ? Collection::WatchService : Product::WatchService
   previous_products = previous_data.dig(watch_name, 'products')
-
-  results << service_class.new(watch_name, params, logger, previous_products).call
-rescue StandardError => e
-  logger.error("#{watch_name}: #{e.message}")
-  results << { watch_name: watch_name, type: params['type'], error: e.message }
-  success = false
+  service_class.new(watch_name, params, logger, previous_products).call
 end
 
-ReportBuildService.new(results).call
+def main
+  logger = build_logger
+  config = load_config(logger)
+  previous_data = load_previous_data(logger)
 
-exit(success ? 0 : 1)
+  success = true
+  results = []
+
+  config.each do |watch_name, params|
+    results << run_watch(watch_name, params, logger, previous_data)
+  rescue StandardError => e
+    logger.error("#{watch_name}: #{e.message}")
+    results << { watch_name: watch_name, type: params['type'], error: e.message }
+    success = false
+  end
+
+  ReportBuildService.new(results).call
+
+  return success
+end
+
+exit(main ? 0 : 1)
