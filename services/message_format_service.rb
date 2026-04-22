@@ -3,7 +3,7 @@
 require_relative 'change_detector'
 
 # Formats a ChangeDetector diff into a Telegram Markdown message.
-class MessageFormatter
+class MessageFormatService
   DETAIL_LIMIT = 10
 
   def initialize(watch_name, diff)

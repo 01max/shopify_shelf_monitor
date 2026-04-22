@@ -2,7 +2,7 @@
 
 require_relative 'showroom_client'
 require_relative 'change_detector'
-require_relative 'message_formatter'
+require_relative 'message_format_service'
 require_relative 'telegram/chat_service'
 
 # Orchestrates the monitoring flow for a +type: products+ watch.
@@ -61,7 +61,7 @@ class ProductWatchService
   end
 
   def notify!(diff)
-    result = MessageFormatter.new(@watch_name, diff).call
+    result = MessageFormatService.new(@watch_name, diff).call
     return if result[:text].nil? && result[:photo_urls].empty? && !force_notify?
 
     send_notifications(result)

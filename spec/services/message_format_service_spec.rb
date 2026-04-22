@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
 require 'spec_helper'
-require_relative '../../services/message_formatter'
+require_relative '../../services/message_format_service'
 
-RSpec.describe MessageFormatter do
+RSpec.describe MessageFormatService do
   let(:empty_diff) { { new_products: [], removed_products: [], changes: [] } }
 
   let(:product) do
