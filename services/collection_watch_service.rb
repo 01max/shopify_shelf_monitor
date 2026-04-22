@@ -40,25 +40,37 @@ class CollectionWatchService
   end
 
   def snapshot_product(product)
-    {
-      'handle' => product.handle,
-      'title' => product.title,
-      'price' => product.price,
-      'available' => product.available?,
+    snapshot_base(product).tap do |s|
+      image = product.main_image
+      s['image'] = image.src if image
+    end
+  end
+
+  def snapshot_base(product)
+    { 'handle' => product.handle, 'title' => product.title,
+      'price' => product.price, 'available' => product.available?,
       'url' => product.url,
-      'variants' => product.variants.map do |v|
-        { 'title' => v.title, 'price' => v.price, 'available' => v.available? }
-      end
-    }
+      'variants' => product.variants.map { |v| snapshot_variant(v) } }
+  end
+
+  def snapshot_variant(variant)
+    { 'title' => variant.title, 'price' => variant.price, 'available' => variant.available? }
   end
 
   def notify!(diff)
-    message = MessageFormatter.format(@watch_name, diff)
-    return if message.nil? && !force_notify?
+    result = MessageFormatter.format(@watch_name, diff)
+    return if result[:text].nil? && result[:photos].empty? && !force_notify?
 
-    message ||= "ShelfMonitor [#{@watch_name}]: no changes detected (force notify)"
-    Telegram::ChatService.new(**chat_params).deliver(message)
+    send_notifications(result)
     @logger.info("#{@watch_name}: notification sent")
+  end
+
+  def send_notifications(result)
+    telegram = Telegram::ChatService.new(**chat_params)
+    result[:photos].each { |photo| telegram.send_photo(photo[:image_url], caption: photo[:caption]) }
+    text = result[:text]
+    text ||= "[#{@watch_name}] no changes detected (force notify)" if force_notify? && result[:photos].empty?
+    telegram.deliver(text) if text
   end
 
   def force_notify?

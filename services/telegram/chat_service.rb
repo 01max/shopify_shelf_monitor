@@ -39,6 +39,26 @@ module Telegram
       raise "Telegram API error (#{response.code}): #{response.body}"
     end
 
+    # Sends a photo with an optional caption.
+    #
+    # @param photo_url [String] URL of the image to send
+    # @param caption [String, nil] caption text (Markdown by default)
+    # @param parse_mode [String] Telegram parse mode
+    # @return [void]
+    def send_photo(photo_url, caption: nil, parse_mode: 'Markdown')
+      body = { chat_id: chat_id, photo: photo_url }
+      body[:caption] = caption if caption
+      body[:parse_mode] = parse_mode if caption
+
+      response = HTTParty.post(
+        "https://api.telegram.org/bot#{ENV.fetch('TELEGRAM_BOT_TOKEN')}/sendPhoto",
+        body: body
+      )
+      return if response.success?
+
+      raise "Telegram API error (#{response.code}): #{response.body}"
+    end
+
     private
 
     # @param text [String]

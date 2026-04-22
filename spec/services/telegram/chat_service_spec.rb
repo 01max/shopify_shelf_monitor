@@ -70,6 +70,43 @@ RSpec.describe Telegram::ChatService do
     end
   end
 
+  describe '#send_photo' do
+    subject(:service) { described_class.new }
+
+    let(:photo_api_url) { "https://api.telegram.org/bot#{bot_token}/sendPhoto" }
+
+    it 'posts to the Telegram sendPhoto endpoint' do
+      stub_request(:post, photo_api_url).to_return(status: 200, body: '{"ok":true}')
+
+      service.send_photo('https://cdn.example.com/photo.jpg', caption: 'A product')
+
+      expect(WebMock).to have_requested(:post, photo_api_url).with(
+        body: hash_including('chat_id' => chat_id, 'photo' => 'https://cdn.example.com/photo.jpg',
+                             'caption' => 'A product', 'parse_mode' => 'Markdown')
+      )
+    end
+
+    it 'omits caption fields when no caption provided' do
+      stub_request(:post, photo_api_url).to_return(status: 200, body: '{"ok":true}')
+
+      service.send_photo('https://cdn.example.com/photo.jpg')
+
+      expect(WebMock).to have_requested(:post, photo_api_url).with(
+        body: hash_including('chat_id' => chat_id, 'photo' => 'https://cdn.example.com/photo.jpg')
+      )
+      expect(WebMock).not_to have_requested(:post, photo_api_url).with(
+        body: hash_including('caption' => anything)
+      )
+    end
+
+    it 'raises on API error' do
+      stub_request(:post, photo_api_url).to_return(status: 400, body: '{"ok":false}')
+
+      expect { service.send_photo('https://cdn.example.com/photo.jpg') }
+        .to raise_error(/Telegram API error/)
+    end
+  end
+
   describe '.build_inline_keyboard' do
     it 'returns nil for nil input' do
       expect(described_class.build_inline_keyboard(nil)).to be_nil

@@ -5,7 +5,7 @@ require_relative '../../services/product_watch_service'
 
 RSpec.describe ProductWatchService do
   let(:logger) { instance_double(Logger, info: nil, warn: nil, debug: nil) }
-  let(:chat_service) { instance_double(Telegram::ChatService, deliver: nil) }
+  let(:chat_service) { instance_double(Telegram::ChatService, deliver: nil, send_photo: nil) }
   let(:client) { instance_double(ShowroomClient) }
 
   let(:params) do
@@ -16,12 +16,12 @@ RSpec.describe ProductWatchService do
   let(:product) do
     double('Product', handle: 'air-max-90', title: 'Air Max 90', price: '120.00',
                       available?: true, url: 'https://test.myshopify.com/products/air-max-90',
-                      variants: [variant])
+                      main_image: nil, variants: [variant])
   end
   let(:product2) do
     double('Product2', handle: 'ultraboost', title: 'Ultraboost', price: '180.00',
                        available?: true, url: 'https://test.myshopify.com/products/ultraboost',
-                       variants: [])
+                       main_image: nil, variants: [])
   end
 
   before do
