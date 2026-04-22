@@ -58,7 +58,8 @@ module Product
       url = current['url']
       image = current['image']
       changes = diff_fields(handle, title, url, image, current, previous)
-      changes.concat(diff_variants(handle, title, url, image, current.fetch('variants', []), previous.fetch('variants', [])))
+      changes.concat(diff_variants(handle, title, url, image, current.fetch('variants', []),
+                                   previous.fetch('variants', [])))
     end
 
     # @param handle [String]
@@ -91,7 +92,8 @@ module Product
       previous_by_title = previous_variants.to_h { |v| [v['title'], v] }
 
       (current_by_title.keys & previous_by_title.keys).flat_map do |vtitle|
-        diff_fields(handle, title, url, image, current_by_title[vtitle], previous_by_title[vtitle], prefix: "variant[#{vtitle}]")
+        diff_fields(handle, title, url, image, current_by_title[vtitle], previous_by_title[vtitle],
+                    prefix: "variant[#{vtitle}]")
       end
     end
   end

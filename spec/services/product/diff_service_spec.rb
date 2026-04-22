@@ -4,7 +4,8 @@ require 'spec_helper'
 require_relative '../../../services/product/diff_service'
 
 RSpec.describe Product::DiffService do
-  def product(handle: 'air-max-90', title: 'Air Max 90', price: '120.00', available: true, variants: [], url: 'https://store.example.com/products/air-max-90', image: nil)
+  def product(handle: 'air-max-90', title: 'Air Max 90', price: '120.00', available: true, variants: [],
+              url: 'https://store.example.com/products/air-max-90', image: nil)
     { 'handle' => handle, 'title' => title, 'price' => price, 'available' => available,
       'url' => url, 'image' => image, 'variants' => variants }
   end

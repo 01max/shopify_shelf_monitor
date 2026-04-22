@@ -81,7 +81,7 @@ def main
 
   ReportBuildService.new(results).call
 
-  return success
+  success
 end
 
 exit(main ? 0 : 1)
