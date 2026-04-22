@@ -56,10 +56,10 @@ module Telegram
 
     private
 
+    # Splits a long message into chunks at newline boundaries.
+    #
     # @param text [String]
-    # @param parse_mode [String]
-    # @param reply_markup [Hash, nil]
-    # @return [Hash]
+    # @return [Array<String>]
     def split_message(text)
       return [text] if text.length <= MAX_MESSAGE_LENGTH
 
@@ -75,10 +75,16 @@ module Telegram
       chunks
     end
 
+    # @param method [String] Bot API method name (e.g. "sendMessage")
+    # @return [String]
     def api_url(method)
       "https://api.telegram.org/bot#{ENV.fetch('TELEGRAM_BOT_TOKEN')}/#{method}"
     end
 
+    # @param text [String]
+    # @param parse_mode [String]
+    # @param reply_markup [Hash, nil]
+    # @return [Hash]
     def build_body(text, parse_mode, reply_markup)
       body = { chat_id: chat_id, text: text, parse_mode: parse_mode }
       body[:reply_markup] = reply_markup.to_json if reply_markup

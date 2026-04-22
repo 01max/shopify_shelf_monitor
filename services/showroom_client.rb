@@ -54,6 +54,9 @@ class ShowroomClient
 
   # Sleeps for the configured rate limit, then yields.
   # Retries once on Showroom::TooManyRequests with a backoff.
+  #
+  # @yield block to execute after the rate-limit sleep
+  # @return [Object] the return value of the block
   def throttle
     sleep(@rate_limit_ms / 1000.0)
     yield

@@ -37,10 +37,14 @@ module Collection
 
     private
 
+    # @param collection [Showroom::Collection]
+    # @return [Array<Hash>]
     def fetch_products(collection)
       @client.collection_products(collection).map { |p| snapshot_product(p) }
     end
 
+    # @param product [Showroom::Product]
+    # @return [Hash]
     def snapshot_product(product)
       snapshot_base(product).tap do |s|
         image = product.main_image
@@ -48,6 +52,8 @@ module Collection
       end
     end
 
+    # @param product [Showroom::Product]
+    # @return [Hash]
     def snapshot_base(product)
       { 'handle' => product.handle, 'title' => product.title,
         'price' => product.price, 'available' => product.available?,
@@ -55,10 +61,14 @@ module Collection
         'variants' => product.variants.map { |v| snapshot_variant(v) } }
     end
 
+    # @param variant [Showroom::Variant]
+    # @return [Hash]
     def snapshot_variant(variant)
       { 'title' => variant.title, 'price' => variant.price, 'available' => variant.available? }
     end
 
+    # @param diff [Hash]
+    # @return [void]
     def notify!(diff)
       result = MessageFormatService.new(@watch_name, diff).call
       return if result[:text].nil? && result[:photo_urls].empty? && !force_notify?
@@ -67,6 +77,8 @@ module Collection
       @logger.info("#{@watch_name}: notification sent")
     end
 
+    # @param result [Hash] formatted message result from MessageFormatService
+    # @return [void]
     def send_notifications(result)
       telegram = Telegram::ChatService.new(**chat_params)
       telegram.send_media_group(result[:photo_urls]) if result[:photo_urls].any?
@@ -75,10 +87,12 @@ module Collection
       telegram.deliver(text) if text
     end
 
+    # @return [Boolean]
     def force_notify?
       ENV['FORCE_NOTIFY'] == 'true'
     end
 
+    # @return [Hash]
     def chat_params
       return {} unless @params.key?('telegram_chat_id')
 

@@ -13,12 +13,15 @@ unless ENV['CI']
   Dotenv.load
 end
 
+# @return [Logger]
 def build_logger
   logger = Logger.new($stdout)
   logger.progname = 'shelf_monitor'
   logger
 end
 
+# @param logger [Logger]
+# @return [Hash] parsed config.yml contents
 def load_config(logger)
   config_path = File.expand_path('config.yml', __dir__)
 
@@ -37,6 +40,8 @@ def load_config(logger)
   config
 end
 
+# @param logger [Logger]
+# @return [Hash{String => Hash}] previous watch results keyed by watch name, or empty hash
 def load_previous_data(logger)
   previous_report_path = File.expand_path('tmp/report.json', __dir__)
   data = JSON.parse(File.read(previous_report_path))
@@ -46,12 +51,18 @@ rescue StandardError
   {}
 end
 
+# @param watch_name [String]
+# @param params [Hash] watch config from config.yml
+# @param logger [Logger]
+# @param previous_data [Hash{String => Hash}]
+# @return [Hash] watch result
 def run_watch(watch_name, params, logger, previous_data)
   service_class = params['type'] == 'collection' ? Collection::WatchService : Product::WatchService
   previous_products = previous_data.dig(watch_name, 'products')
   service_class.new(watch_name, params, logger, previous_products).call
 end
 
+# @return [Boolean] true if all watches succeeded
 def main
   logger = build_logger
   config = load_config(logger)

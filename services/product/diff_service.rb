@@ -5,17 +5,20 @@
 module Product
   # Product::DiffService
   class DiffService
+    # Immutable value object representing a single field change on a product or variant.
     ProductChange = Data.define(:handle, :field, :previous_value, :current_value)
+
+    # Product/variant fields compared across snapshots.
     TRACKED_FIELDS = %w[price available].freeze
 
     # @param current_products [Array<Hash>] current product snapshots
     # @param previous_products [Array<Hash>] previous product snapshots (from report)
-    # @return [Hash] { new_products: [...], removed_products: [...], changes: [...] }
     def initialize(current_products, previous_products)
       @current_by_handle = index_by_handle(current_products)
       @previous_by_handle = index_by_handle(previous_products)
     end
 
+    # @return [Hash] with :new_products, :removed_products, :changes keys
     def call
       {
         new_products: handles_diff(@current_by_handle, @previous_by_handle),
@@ -26,14 +29,20 @@ module Product
 
     private
 
+    # @param products [Array<Hash>]
+    # @return [Hash{String => Hash}]
     def index_by_handle(products)
       products.to_h { |p| [p['handle'], p] }
     end
 
+    # @param source [Hash{String => Hash}]
+    # @param other [Hash{String => Hash}]
+    # @return [Array<Hash>] products in source but not in other
     def handles_diff(source, other)
       (source.keys - other.keys).map { |h| source[h] }
     end
 
+    # @return [Array<ProductChange>]
     def detect_changes
       (@current_by_handle.keys & @previous_by_handle.keys).flat_map do |handle|
         diff_product(@current_by_handle[handle], @previous_by_handle[handle])
@@ -49,6 +58,11 @@ module Product
       changes.concat(diff_variants(handle, current.fetch('variants', []), previous.fetch('variants', [])))
     end
 
+    # @param handle [String]
+    # @param current [Hash]
+    # @param previous [Hash]
+    # @param prefix [String, nil] field name prefix for variant fields
+    # @return [Array<ProductChange>]
     def diff_fields(handle, current, previous, prefix: nil)
       TRACKED_FIELDS.filter_map do |field|
         next if current[field] == previous[field]
@@ -59,6 +73,10 @@ module Product
       end
     end
 
+    # @param handle [String]
+    # @param current_variants [Array<Hash>]
+    # @param previous_variants [Array<Hash>]
+    # @return [Array<ProductChange>]
     def diff_variants(handle, current_variants, previous_variants)
       current_by_title = current_variants.to_h { |v| [v['title'], v] }
       previous_by_title = previous_variants.to_h { |v| [v['title'], v] }
