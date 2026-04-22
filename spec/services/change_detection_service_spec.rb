@@ -29,7 +29,7 @@ RSpec.describe ChangeDetectionService do
       diff = described_class.new(current, previous).call
 
       expect(diff[:changes]).to contain_exactly(
-        described_class::Change.new(handle: 'air-max-90', field: 'price',
+        described_class::ProductChange.new(handle: 'air-max-90', field: 'price',
                                     previous_value: '130.00', current_value: '120.00')
       )
     end
@@ -41,7 +41,7 @@ RSpec.describe ChangeDetectionService do
       diff = described_class.new(current, previous).call
 
       expect(diff[:changes]).to contain_exactly(
-        described_class::Change.new(handle: 'air-max-90', field: 'available',
+        described_class::ProductChange.new(handle: 'air-max-90', field: 'available',
                                     previous_value: true, current_value: false)
       )
     end
@@ -53,7 +53,7 @@ RSpec.describe ChangeDetectionService do
       diff = described_class.new(current, previous).call
 
       expect(diff[:changes]).to contain_exactly(
-        described_class::Change.new(handle: 'air-max-90', field: 'variant[Size 10].price',
+        described_class::ProductChange.new(handle: 'air-max-90', field: 'variant[Size 10].price',
                                     previous_value: '130.00', current_value: '120.00')
       )
     end
@@ -65,7 +65,7 @@ RSpec.describe ChangeDetectionService do
       diff = described_class.new(current, previous).call
 
       expect(diff[:changes]).to contain_exactly(
-        described_class::Change.new(handle: 'air-max-90', field: 'variant[Size 10].available',
+        described_class::ProductChange.new(handle: 'air-max-90', field: 'variant[Size 10].available',
                                     previous_value: true, current_value: false)
       )
     end
