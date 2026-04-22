@@ -19,8 +19,14 @@ class MessageFormatter
     ["*ShelfMonitor [#{watch_name}]*: changes detected!", *sections].join("\n\n")
   end
 
+  DETAIL_LIMIT = 10
+
   def self.format_new_products(products)
     return nil if products.nil? || products.empty?
+
+    if products.size > DETAIL_LIMIT
+      return "*New products:* #{products.size} products added"
+    end
 
     lines = products.map { |p| format_new_product(p) }
     "*New products:*\n#{lines.join("\n")}"
@@ -43,6 +49,10 @@ class MessageFormatter
 
   def self.format_removed_products(products)
     return nil if products.nil? || products.empty?
+
+    if products.size > DETAIL_LIMIT
+      return "*Removed products:* #{products.size} products removed"
+    end
 
     lines = products.map { |p| "- #{p['handle']}" }
     "*Removed products:*\n#{lines.join("\n")}"

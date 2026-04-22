@@ -30,10 +30,13 @@ module Telegram
     # @param reply_markup [Hash, nil] inline keyboard markup built by {.build_inline_keyboard}
     # @return [void]
     def deliver(text, parse_mode: 'Markdown', reply_markup: nil)
-      HTTParty.post(
+      response = HTTParty.post(
         "https://api.telegram.org/bot#{ENV.fetch('TELEGRAM_BOT_TOKEN')}/sendMessage",
         body: build_body(text, parse_mode, reply_markup)
       )
+      return if response.success?
+
+      raise "Telegram API error (#{response.code}): #{response.body}"
     end
 
     private
@@ -42,6 +45,21 @@ module Telegram
     # @param parse_mode [String]
     # @param reply_markup [Hash, nil]
     # @return [Hash]
+    def split_message(text)
+      return [text] if text.length <= MAX_MESSAGE_LENGTH
+
+      chunks = []
+      remaining = text
+      while remaining.length > MAX_MESSAGE_LENGTH
+        # Split at last newline within limit
+        cut = remaining.rindex("\n", MAX_MESSAGE_LENGTH) || MAX_MESSAGE_LENGTH
+        chunks << remaining[0...cut]
+        remaining = remaining[cut..].lstrip
+      end
+      chunks << remaining unless remaining.empty?
+      chunks
+    end
+
     def build_body(text, parse_mode, reply_markup)
       body = { chat_id: chat_id, text: text, parse_mode: parse_mode }
       body[:reply_markup] = reply_markup.to_json if reply_markup

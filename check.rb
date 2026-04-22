@@ -30,7 +30,7 @@ if config.nil? || config.empty?
   exit 1
 end
 
-previous_report_path = File.expand_path('tmp/previous/report.json', __dir__)
+previous_report_path = File.expand_path('tmp/report.json', __dir__)
 previous_data = begin
   data = JSON.parse(File.read(previous_report_path))
   data['watches'].to_h { |w| [w['watch'], w] }
