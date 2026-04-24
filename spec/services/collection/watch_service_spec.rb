@@ -118,6 +118,33 @@ RSpec.describe Collection::WatchService do
       end
     end
 
+    context 'when more than BATCH_SIZE new products are detected' do
+      let(:many_products) do
+        (1..35).map do |i|
+          double("Product#{i}", handle: "product-#{i}", title: "Product #{i}", price: '50.00',
+                                available?: true, url: "https://test.myshopify.com/products/product-#{i}",
+                                main_image: nil, variants: [])
+        end
+      end
+
+      before do
+        allow(client).to receive(:collection_products).with(collection).and_return(many_products)
+      end
+
+      it 'sends multiple notifications' do
+        described_class.new('my_watch', params, logger).call
+
+        expect(chat_service).to have_received(:deliver).twice
+      end
+
+      it 'first batch summarises 30 products, second batch lists the remaining 5' do
+        described_class.new('my_watch', params, logger).call
+
+        expect(chat_service).to have_received(:deliver).with(/30 products added/).once
+        expect(chat_service).to have_received(:deliver).with(/Product 31/).once
+      end
+    end
+
     context 'with FORCE_NOTIFY=true and no changes' do
       before do
         stub_const('ENV', ENV.to_h.merge('TELEGRAM_BOT_TOKEN' => 'token',

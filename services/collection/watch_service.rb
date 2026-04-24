@@ -67,14 +67,50 @@ module Collection
       { 'title' => variant.title, 'price' => variant.price, 'available' => variant.available? }
     end
 
+    BATCH_SIZE = 20
+
     # @param diff [Hash]
     # @return [void]
     def notify!(diff)
-      result = MessageFormatService.new(@watch_name, diff).call
-      return if result[:text].nil? && result[:photo_urls].empty? && !force_notify?
+      batches = build_batches(diff)
 
-      send_notifications(result)
-      @logger.info("#{@watch_name}: notification sent")
+      if batches.empty? && force_notify?
+        send_notifications({ text: nil, photo_urls: [] })
+        @logger.info("#{@watch_name}: notification sent")
+        return
+      end
+
+      batches.each do |batch|
+        result = MessageFormatService.new(@watch_name, batch).call
+        next if result[:text].nil? && result[:photo_urls].empty?
+
+        send_notifications(result)
+      end
+      @logger.info("#{@watch_name}: notification sent") if batches.any?
+    end
+
+    # Splits a diff into chunks of at most BATCH_SIZE products across all three categories.
+    #
+    # @param diff [Hash]
+    # @return [Array<Hash>]
+    def build_batches(diff)
+      new_p    = diff[:new_products] || []
+      removed  = diff[:removed_products] || []
+      changes  = diff[:changes] || []
+
+      return [] if new_p.empty? && removed.empty? && changes.empty?
+
+      batches = []
+      new_p.each_slice(BATCH_SIZE)   { |s| batches << { new_products: s,  removed_products: [], changes: [] } }
+      removed.each_slice(BATCH_SIZE) { |s| batches << { new_products: [], removed_products: s, changes: [] } }
+
+      changed_handles = changes.map(&:handle).uniq
+      changed_handles.each_slice(BATCH_SIZE) do |handles|
+        batches << { new_products: [], removed_products: [],
+                     changes: changes.select { |c| handles.include?(c.handle) } }
+      end
+
+      batches
     end
 
     # @param result [Hash] formatted message result from MessageFormatService
