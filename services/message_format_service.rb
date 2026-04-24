@@ -3,7 +3,8 @@
 # Formats a Product::Diff into a Telegram Markdown message.
 class MessageFormatService
   # Maximum number of individual products to list before summarising with a count.
-  DETAIL_LIMIT = 10
+  IMAGE_LIMIT = 10
+  DETAIL_LIMIT = 20
 
   # @param watch_name [String] watch identifier used as the message heading
   # @param diff [Hash] diff hash with :new_products, :removed_products, :changes keys
@@ -36,9 +37,9 @@ class MessageFormatService
   # @return [Array<String>]
   def new_product_photo_urls
     products = @diff[:new_products]
-    return [] if products.nil? || products.empty? || products.size > DETAIL_LIMIT
+    return [] if products.nil? || products.empty?
 
-    products.filter_map { |p| p['image'] }
+    products[0..IMAGE_LIMIT-1].filter_map { |p| p['image'] }
   end
 
   # Returns image URLs for changed products (one per unique product).
@@ -49,9 +50,8 @@ class MessageFormatService
     return [] if changes.nil? || changes.empty?
 
     unique_products = changes.group_by(&:handle).values.map(&:first)
-    return [] if unique_products.size > DETAIL_LIMIT
 
-    unique_products.filter_map(&:image)
+    unique_products[0..IMAGE_LIMIT-1].filter_map(&:image)
   end
 
   # @param products [Array<Hash>]
