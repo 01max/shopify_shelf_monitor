@@ -53,46 +53,36 @@ module Product
     # @param previous [Hash] single product snapshot
     # @return [Array<ProductChange>]
     def diff_product(current, previous)
-      handle = current['handle']
-      title = current['title']
-      url = current['url']
-      image = current['image']
-      changes = diff_fields(handle, title, url, image, current, previous)
-      changes.concat(diff_variants(handle, title, url, image, current.fetch('variants', []),
-                                   previous.fetch('variants', [])))
+      changes = diff_fields(current, current, previous)
+      changes.concat(diff_variants(current, current.fetch('variants', []), previous.fetch('variants', [])))
     end
 
-    # @param handle [String]
-    # @param title [String]
-    # @param url [String]
-    # @param image [String, nil]
+    # @param product [Hash] product snapshot used as change context (handle, title, url, image)
     # @param current [Hash]
     # @param previous [Hash]
     # @param prefix [String, nil] field name prefix for variant fields
     # @return [Array<ProductChange>]
-    def diff_fields(handle, title, url, image, current, previous, prefix: nil)
+    def diff_fields(product, current, previous, prefix: nil)
       TRACKED_FIELDS.filter_map do |field|
         next if current[field] == previous[field]
 
         field_name = prefix ? "#{prefix}.#{field}" : field
-        ProductChange.new(handle: handle, title: title, url: url, image: image,
+        ProductChange.new(handle: product['handle'], title: product['title'],
+                          url: product['url'], image: product['image'],
                           field: field_name, previous_value: previous[field], current_value: current[field])
       end
     end
 
-    # @param handle [String]
-    # @param title [String]
-    # @param url [String]
-    # @param image [String, nil]
+    # @param product [Hash] product snapshot used as change context (handle, title, url, image)
     # @param current_variants [Array<Hash>]
     # @param previous_variants [Array<Hash>]
     # @return [Array<ProductChange>]
-    def diff_variants(handle, title, url, image, current_variants, previous_variants)
+    def diff_variants(product, current_variants, previous_variants)
       current_by_title = current_variants.to_h { |v| [v['title'], v] }
       previous_by_title = previous_variants.to_h { |v| [v['title'], v] }
 
       (current_by_title.keys & previous_by_title.keys).flat_map do |vtitle|
-        diff_fields(handle, title, url, image, current_by_title[vtitle], previous_by_title[vtitle],
+        diff_fields(product, current_by_title[vtitle], previous_by_title[vtitle],
                     prefix: "variant[#{vtitle}]")
       end
     end

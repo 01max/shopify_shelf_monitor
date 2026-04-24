@@ -3,8 +3,13 @@ AllCops:
   SuggestExtensions: false
   Exclude:
     - 'bin/**/*'
+    - 'vendor/**/*'
 
 Metrics/BlockLength:
+  Exclude:
+    - 'spec/**/*'
+
+Metrics/ParameterLists:
   Exclude:
     - 'spec/**/*'
 
