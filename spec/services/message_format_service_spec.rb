@@ -31,6 +31,20 @@ RSpec.describe MessageFormatService do
       expect(result[:text]).to include('*[favorite_sneakers]*')
     end
 
+    it 'omits pagination suffix when total_pages is 1' do
+      diff = empty_diff.merge(new_products: [product])
+      result = described_class.new('my_watch', diff, page: 1, total_pages: 1).call
+
+      expect(result[:text]).not_to match(/\(\d+\/\d+\)/)
+    end
+
+    it 'appends page indicator when total_pages > 1' do
+      diff = empty_diff.merge(new_products: [product])
+      result = described_class.new('my_watch', diff, page: 2, total_pages: 3).call
+
+      expect(result[:text]).to include('changes detected (2/3)')
+    end
+
     it 'formats new products as a numbered list' do
       diff = empty_diff.merge(new_products: [product])
       result = described_class.new('my_watch', diff).call

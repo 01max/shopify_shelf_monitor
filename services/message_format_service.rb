@@ -8,9 +8,13 @@ class MessageFormatService
 
   # @param watch_name [String] watch identifier used as the message heading
   # @param diff [Hash] diff hash with :new_products, :removed_products, :changes keys
-  def initialize(watch_name, diff)
+  # @param page [Integer, nil] current page number (1-based); omit for single-page messages
+  # @param total_pages [Integer, nil] total number of pages; omit for single-page messages
+  def initialize(watch_name, diff, page: nil, total_pages: nil)
     @watch_name = watch_name
     @diff = diff
+    @page = page
+    @total_pages = total_pages
   end
 
   # @return [Hash] with :text (String or nil) and :photo_urls (Array<String>)
@@ -29,7 +33,14 @@ class MessageFormatService
     ].compact
     return nil if sections.empty?
 
-    ["*[#{@watch_name}]* changes detected", *sections].join("\n\n")
+    ["*[#{@watch_name}]* changes detected#{pagination_suffix}", *sections].join("\n\n")
+  end
+
+  # @return [String]
+  def pagination_suffix
+    return '' if @total_pages.nil? || @total_pages <= 1
+
+    " (#{@page}/#{@total_pages})"
   end
 
   # Returns image URLs for new products (used for sendMediaGroup album).

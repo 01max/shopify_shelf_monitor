@@ -75,14 +75,16 @@ module Collection
       batches = build_batches(diff)
       return force_notify_empty! if batches.empty? && force_notify?
 
-      batches.each { |batch| send_batch(batch) }
+      batches.each_with_index { |batch, i| send_batch(batch, i + 1, batches.size) }
       @logger.info("#{@watch_name}: notification sent") if batches.any?
     end
 
-    # @param diff [Hash]
+    # @param batch [Hash]
+    # @param page [Integer]
+    # @param total_pages [Integer]
     # @return [void]
-    def send_batch(batch)
-      result = MessageFormatService.new(@watch_name, batch).call
+    def send_batch(batch, page, total_pages)
+      result = MessageFormatService.new(@watch_name, batch, page: page, total_pages: total_pages).call
       send_notifications(result) unless result[:text].nil? && result[:photo_urls].empty?
     end
 
