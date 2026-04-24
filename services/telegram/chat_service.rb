@@ -49,10 +49,26 @@ module Telegram
     # @param photo_urls [Array<String>] URLs of the images to send (2-10)
     # @return [void]
     def send_media_group(photo_urls)
+      return send_photo(photo_urls.first) if photo_urls.size == 1
+
       media = photo_urls.map { |url| { type: 'photo', media: url } }
       response = HTTParty.post(
         api_url('sendMediaGroup'),
         body: { chat_id: chat_id, media: media.to_json }
+      )
+      return if response.success?
+
+      raise "Telegram API error (#{response.code}): #{response.body}"
+    end
+
+    # Sends a single photo.
+    #
+    # @param photo_url [String] URL of the image to send
+    # @return [void]
+    def send_photo(photo_url)
+      response = HTTParty.post(
+        api_url('sendPhoto'),
+        body: { chat_id: chat_id, photo: photo_url }
       )
       return if response.success?
 

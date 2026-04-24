@@ -75,7 +75,11 @@ module Collection
       batches = build_batches(diff)
       return force_notify_empty! if batches.empty? && force_notify?
 
-      batches.each_with_index { |batch, i| send_batch(batch, i + 1, batches.size) }
+      batches.each_with_index do |batch, i|
+        send_batch(batch, i + 1, batches.size)
+      rescue StandardError => e
+        @logger.warn("#{@watch_name}: failed to send page #{i + 1}/#{batches.size}: #{e.message}")
+      end
       @logger.info("#{@watch_name}: notification sent") if batches.any?
     end
 
