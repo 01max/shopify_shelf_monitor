@@ -76,13 +76,20 @@ class MessageFormatService
   def format_changes(changes)
     return nil if changes.nil? || changes.empty?
 
-    lines = changes.group_by(&:handle).each_with_index.map do |(_handle, product_changes), i|
-      first = product_changes.first
-      header = "#{i+1}. [#{first.title}](#{first.url}):"
-      field_lines = product_changes.map { |c| "  - #{c.field}: `#{c.previous_value}` → `#{c.current_value}`" }
-      "#{header}\n#{field_lines.join("\n")}"
+    lines = changes.group_by(&:handle).each_with_index.map do |(_, product_changes), i|
+      format_change_entry(product_changes, i)
     end
     "*Changes:*\n#{lines.join("\n")}"
+  end
+
+  # @param product_changes [Array<Product::DiffService::ProductChange>]
+  # @param index [Integer]
+  # @return [String]
+  def format_change_entry(product_changes, index)
+    first = product_changes.first
+    header = "#{index + 1}. [#{first.title}](#{first.url}):"
+    field_lines = product_changes.map { |c| "  - #{c.field}: `#{c.previous_value}` → `#{c.current_value}`" }
+    "#{header}\n#{field_lines.join("\n")}"
   end
 
   # @param products [Array<Hash>]
