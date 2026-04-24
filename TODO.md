@@ -1,2 +1,3 @@
-- [] For products of a `type: products` config, list the similar products evey week and order them by price
-- [] When a product of a `type: products` config goes from `available` true to false, search `similar` product and send a message listing them
+- [] Fix collection pagination
+- [] Run collection check once a week only on a seperate action
+- [] For each products of a `type: products` config, list the similar products evey week and order them by price
