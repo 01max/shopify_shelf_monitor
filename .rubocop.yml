@@ -8,6 +8,10 @@ Metrics/BlockLength:
   Exclude:
     - 'spec/**/*'
 
+Metrics/ParameterLists:
+  Exclude:
+    - 'spec/**/*'
+
 Style/FrozenStringLiteralComment:
   Enabled: true
   EnforcedStyle: always
