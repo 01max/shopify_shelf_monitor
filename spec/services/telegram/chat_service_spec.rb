@@ -48,7 +48,7 @@ RSpec.describe Telegram::ChatService do
     context 'when the message exceeds MAX_MESSAGE_LENGTH' do
       it 'splits into multiple requests' do
         stub_request(:post, api_url).to_return(status: 200, body: '{"ok":true}')
-        long_text = ("a" * 100 + "\n") * 50  # ~5050 chars, splits into 2
+        long_text = "#{'a' * 100}\n" * 50 # ~5050 chars, splits into 2
 
         service.deliver(long_text)
 
@@ -57,7 +57,7 @@ RSpec.describe Telegram::ChatService do
 
       it 'attaches reply_markup only to the last chunk' do
         stub_request(:post, api_url).to_return(status: 200, body: '{"ok":true}')
-        long_text = ("a" * 100 + "\n") * 50
+        long_text = "#{'a' * 100}\n" * 50
         markup = { inline_keyboard: [[{ text: 'View', url: 'https://example.com' }]] }
 
         service.deliver(long_text, reply_markup: markup)
