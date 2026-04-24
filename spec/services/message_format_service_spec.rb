@@ -183,8 +183,8 @@ RSpec.describe MessageFormatService do
       expect(result[:text]).to include('*Removed products:*')
     end
 
-    it 'falls back to text summary when new products exceed DETAIL_LIMIT' do
-      products = (1..11).map do |i|
+    it 'falls back to text summary when new products exceed PRODUCT_COUNT_LIMIT' do
+      products = (1..21).map do |i|
         { 'handle' => "product-#{i}", 'title' => "Product #{i}",
           'price' => '10.00', 'available' => true,
           'url' => "https://store.myshopify.com/products/product-#{i}",
@@ -193,8 +193,20 @@ RSpec.describe MessageFormatService do
       diff = empty_diff.merge(new_products: products)
       result = described_class.new('my_watch', diff).call
 
-      expect(result[:photo_urls]).to be_empty
-      expect(result[:text]).to include('11 products added')
+      expect(result[:text]).to include('21 products added')
+    end
+
+    it 'returns up to IMAGE_COUNT_LIMIT photo_urls regardless of product count' do
+      products = (1..15).map do |i|
+        { 'handle' => "product-#{i}", 'title' => "Product #{i}",
+          'price' => '10.00', 'available' => true,
+          'url' => "https://store.myshopify.com/products/product-#{i}",
+          'image' => "https://cdn.shopify.com/product-#{i}.jpg" }
+      end
+      diff = empty_diff.merge(new_products: products)
+      result = described_class.new('my_watch', diff).call
+
+      expect(result[:photo_urls].size).to eq(MessageFormatService::IMAGE_COUNT_LIMIT)
     end
   end
 end

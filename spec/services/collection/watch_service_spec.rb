@@ -137,10 +137,10 @@ RSpec.describe Collection::WatchService do
         expect(chat_service).to have_received(:deliver).twice
       end
 
-      it 'first batch summarises 20 products, second batch lists the remaining 5' do
+      it 'first batch contains products 1-20, second batch contains products 21-25' do
         described_class.new('my_watch', params, logger).call
 
-        expect(chat_service).to have_received(:deliver).with(/20 products added/).once
+        expect(chat_service).to have_received(:deliver).with(/Product 1/).once
         expect(chat_service).to have_received(:deliver).with(/Product 21/).once
       end
     end

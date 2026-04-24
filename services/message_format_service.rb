@@ -3,8 +3,8 @@
 # Formats a Product::Diff into a Telegram Markdown message.
 class MessageFormatService
   # Maximum number of individual products to list before summarising with a count.
-  IMAGE_LIMIT = 10
-  DETAIL_LIMIT = 20
+  IMAGE_COUNT_LIMIT = 10
+  PRODUCT_COUNT_LIMIT = 20
 
   # @param watch_name [String] watch identifier used as the message heading
   # @param diff [Hash] diff hash with :new_products, :removed_products, :changes keys
@@ -39,7 +39,7 @@ class MessageFormatService
     products = @diff[:new_products]
     return [] if products.nil? || products.empty?
 
-    products[0..IMAGE_LIMIT-1].filter_map { |p| p['image'] }
+    products[0..(IMAGE_COUNT_LIMIT - 1)].filter_map { |p| p['image'] }
   end
 
   # Returns image URLs for changed products (one per unique product).
@@ -51,14 +51,14 @@ class MessageFormatService
 
     unique_products = changes.group_by(&:handle).values.map(&:first)
 
-    unique_products[0..IMAGE_LIMIT-1].filter_map(&:image)
+    unique_products[0..(IMAGE_COUNT_LIMIT - 1)].filter_map(&:image)
   end
 
   # @param products [Array<Hash>]
   # @return [String, nil]
   def format_new_products(products)
     return nil if products.nil? || products.empty?
-    return "*New products:* #{products.size} products added" if products.size > DETAIL_LIMIT
+    return "*New products:* #{products.size} products added" if products.size > PRODUCT_COUNT_LIMIT
 
     lines = products.each_with_index.map { |p, i| format_new_product(p, i + 1) }
     "*New products:*\n#{lines.join("\n")}"
@@ -97,7 +97,7 @@ class MessageFormatService
   def format_removed_products(products)
     return nil if products.nil? || products.empty?
 
-    return "*Removed products:* #{products.size} products removed" if products.size > DETAIL_LIMIT
+    return "*Removed products:* #{products.size} products removed" if products.size > PRODUCT_COUNT_LIMIT
 
     lines = products.map { |p| "- #{p['handle']}" }
     "*Removed products:*\n#{lines.join("\n")}"
