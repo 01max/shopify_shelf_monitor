@@ -35,7 +35,7 @@ RSpec.describe MessageFormatService do
       diff = empty_diff.merge(new_products: [product])
       result = described_class.new('my_watch', diff, page: 1, total_pages: 1).call
 
-      expect(result[:text]).not_to match(/\(\d+\/\d+\)/)
+      expect(result[:text]).not_to match(%r{\(\d+/\d+\)})
     end
 
     it 'appends page indicator when total_pages > 1' do

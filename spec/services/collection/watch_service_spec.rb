@@ -147,8 +147,8 @@ RSpec.describe Collection::WatchService do
       it 'includes pagination suffix in each message' do
         described_class.new('my_watch', params, logger).call
 
-        expect(chat_service).to have_received(:deliver).with(/\(1\/2\)/).once
-        expect(chat_service).to have_received(:deliver).with(/\(2\/2\)/).once
+        expect(chat_service).to have_received(:deliver).with(%r{\(1/2\)}).once
+        expect(chat_service).to have_received(:deliver).with(%r{\(2/2\)}).once
       end
     end
 
