@@ -120,7 +120,7 @@ RSpec.describe Collection::WatchService do
 
     context 'when more than BATCH_SIZE new products are detected' do
       let(:many_products) do
-        (1..35).map do |i|
+        (1..25).map do |i|
           double("Product#{i}", handle: "product-#{i}", title: "Product #{i}", price: '50.00',
                                 available?: true, url: "https://test.myshopify.com/products/product-#{i}",
                                 main_image: nil, variants: [])
@@ -137,11 +137,11 @@ RSpec.describe Collection::WatchService do
         expect(chat_service).to have_received(:deliver).twice
       end
 
-      it 'first batch summarises 30 products, second batch lists the remaining 5' do
+      it 'first batch summarises 20 products, second batch lists the remaining 5' do
         described_class.new('my_watch', params, logger).call
 
-        expect(chat_service).to have_received(:deliver).with(/30 products added/).once
-        expect(chat_service).to have_received(:deliver).with(/Product 31/).once
+        expect(chat_service).to have_received(:deliver).with(/20 products added/).once
+        expect(chat_service).to have_received(:deliver).with(/Product 21/).once
       end
     end
 
