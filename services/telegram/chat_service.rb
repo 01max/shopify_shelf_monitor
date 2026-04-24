@@ -16,6 +16,8 @@ module Telegram
   #   markup = Telegram::ChatService.build_inline_keyboard([{ text: 'Book', url: 'https://...' }])
   #   Telegram::ChatService.new.deliver("Slots found!", reply_markup: markup)
   class ChatService
+    MAX_MESSAGE_LENGTH = 4096
+
     attr_reader :chat_id
 
     # @param chat_id [String] Telegram chat ID; defaults to +TELEGRAM_DEFAULT_CHAT_ID+
@@ -30,14 +32,16 @@ module Telegram
     # @param reply_markup [Hash, nil] inline keyboard markup built by {.build_inline_keyboard}
     # @return [void]
     def deliver(text, parse_mode: 'Markdown', reply_markup: nil)
-      response = HTTParty.post(
-        api_url('sendMessage'),
-        headers: { 'Content-Type' => 'application/json' },
-        body: build_body(text, parse_mode, reply_markup).to_json
-      )
-      return if response.success?
-
-      raise "Telegram API error (#{response.code}): #{response.body}"
+      chunks = split_message(text)
+      chunks.each_with_index do |chunk, i|
+        markup = i == chunks.size - 1 ? reply_markup : nil
+        response = HTTParty.post(
+          api_url('sendMessage'),
+          headers: { 'Content-Type' => 'application/json' },
+          body: build_body(chunk, parse_mode, markup).to_json
+        )
+        raise "Telegram API error (#{response.code}): #{response.body}" unless response.success?
+      end
     end
 
     # Sends multiple photos as an album.
