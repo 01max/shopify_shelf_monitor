@@ -16,7 +16,7 @@ Built on top of the [showroom](https://github.com/01max/showroom) gem for unauth
 
 ### Requirements
 
-- Ruby >= 3.2
+- Ruby >= 3.4
 - A Telegram bot token ([create one via BotFather](https://core.telegram.org/bots#botfather))
 - A Telegram chat ID to send notifications to
 
