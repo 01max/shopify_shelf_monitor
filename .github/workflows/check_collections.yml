@@ -1,8 +1,8 @@
-name: Check Shopify Shelf
+name: Check Collections
 
 on:
   schedule:
-    - cron: "0 */4 * * *"
+    - cron: "0 6 * * 1"
   workflow_dispatch:
     inputs:
       force_notify:
@@ -29,7 +29,7 @@ jobs:
       - name: Download previous report
         uses: dawidd6/action-download-artifact@v20
         with:
-          name: report-products
+          name: report-collections
           path: tmp
           if_no_artifact_found: ignore
         continue-on-error: true
@@ -39,20 +39,20 @@ jobs:
         env:
           SHELF_MONITOR_CONFIG: ${{ secrets.SHELF_MONITOR_CONFIG }}
 
-      - name: Run shelf check
+      - name: Run collection check
         run: bundle exec ruby check.rb
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_DEFAULT_CHAT_ID: ${{ secrets.TELEGRAM_DEFAULT_CHAT_ID }}
           FORCE_NOTIFY: ${{ inputs.force_notify }}
-          CHECK_TYPE: products
+          CHECK_TYPE: collection
 
       - name: Upload report
         if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: report-products
-          path: tmp/report-products.json
+          name: report-collections
+          path: tmp/report-collections.json
           retention-days: 7
 
       - name: Disable workflow after 3 consecutive failures
@@ -60,8 +60,8 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          recent=$(gh run list --workflow=check.yml --limit=3 --json conclusion --jq '[.[].conclusion]')
+          recent=$(gh run list --workflow=check_collections.yml --limit=3 --json conclusion --jq '[.[].conclusion]')
           if [ "$recent" = '["failure","failure","failure"]' ]; then
             echo "3 consecutive failures — disabling workflow"
-            gh workflow disable check.yml
+            gh workflow disable check_collections.yml
           fi

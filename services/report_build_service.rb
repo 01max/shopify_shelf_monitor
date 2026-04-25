@@ -9,23 +9,25 @@ class ReportBuildService
   REPORT_PATH = File.expand_path('../tmp/report.json', __dir__)
 
   # @param results [Array<Hash>] collected return values from watch services
-  def initialize(results)
+  # @param path [String] destination file path (defaults to {REPORT_PATH})
+  def initialize(results, path: REPORT_PATH)
     @results = results
+    @path = path
   end
 
-  # Serializes +results+ to {REPORT_PATH} as pretty-printed JSON.
-  # Creates +tmp/+ if it does not exist.
+  # Serializes +results+ to the configured path as pretty-printed JSON.
+  # Creates the parent directory if it does not exist.
   #
   # @return [void]
   def call
-    FileUtils.mkdir_p(File.dirname(REPORT_PATH))
+    FileUtils.mkdir_p(File.dirname(@path))
 
     report = {
       generated_at: Time.now.utc.iso8601,
       watches: @results.map { |r| serialize(r) }
     }
 
-    File.write(REPORT_PATH, JSON.pretty_generate(report))
+    File.write(@path, JSON.pretty_generate(report))
   end
 
   private

@@ -37,14 +37,21 @@ def load_config(logger)
   config
 end
 
+# @return [String] report filename based on CHECK_TYPE env var
+def report_path
+  suffix = ENV.fetch('CHECK_TYPE', nil)
+  name = suffix ? "report-#{suffix}.json" : 'report.json'
+  File.expand_path("tmp/#{name}", __dir__)
+end
+
 # @param logger [Logger]
 # @return [Hash{String => Hash}] previous watch results keyed by watch name, or empty hash
 def load_previous_data(logger)
-  previous_report_path = File.expand_path('tmp/report.json', __dir__)
-  data = JSON.parse(File.read(previous_report_path))
+  path = report_path
+  data = JSON.parse(File.read(path))
   data['watches'].to_h { |w| [w['watch'], w] }
 rescue StandardError
-  logger.warn("Previous report not found or invalid at #{previous_report_path}, starting fresh")
+  logger.warn("Previous report not found or invalid at #{path}, starting fresh")
   {}
 end
 
@@ -59,10 +66,19 @@ def run_watch(watch_name, params, logger, previous_data)
   service_class.new(watch_name, params, logger, previous_products).call
 end
 
+# @param config [Hash]
+# @param check_type [String, nil] optional type filter (e.g. "products", "collection")
+# @return [Hash] filtered config entries matching check_type, or all if nil
+def filter_config(config, check_type)
+  return config unless check_type
+
+  config.select { |_, params| params['type'] == check_type }
+end
+
 # @return [Array<(Array<Hash>, Boolean)>] results array and success flag
 def run_all_watches(config, logger, previous_data)
   success = true
-  results = config.map do |watch_name, params|
+  results = filter_config(config, ENV.fetch('CHECK_TYPE', nil)).map do |watch_name, params|
     run_watch(watch_name, params, logger, previous_data)
   rescue StandardError => e
     logger.error("#{watch_name}: #{e.message}")
@@ -78,7 +94,7 @@ def main
   config = load_config(logger)
   previous_data = load_previous_data(logger)
   results, success = run_all_watches(config, logger, previous_data)
-  ReportBuildService.new(results).call
+  ReportBuildService.new(results, path: report_path).call
   success
 end
 
