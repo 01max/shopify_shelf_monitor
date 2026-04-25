@@ -1,0 +1,45 @@
+name: Check Similar Products
+
+on:
+  schedule:
+    - cron: "0 6 * * 4"
+  workflow_dispatch:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.4'
+          bundler-cache: true
+
+      - name: Write config
+        run: echo "$SHELF_MONITOR_CONFIG" > config.yml
+        env:
+          SHELF_MONITOR_CONFIG: ${{ secrets.SHELF_MONITOR_CONFIG }}
+
+      - name: Run similar products check
+        run: bundle exec ruby check.rb
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_DEFAULT_CHAT_ID: ${{ secrets.TELEGRAM_DEFAULT_CHAT_ID }}
+          CHECK_TYPE: similar
+
+      - name: Disable workflow after 3 consecutive failures
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          recent=$(gh run list --workflow=check_similar.yml --limit=3 --json conclusion --jq '[.[].conclusion]')
+          if [ "$recent" = '["failure","failure","failure"]' ]; then
+            echo "3 consecutive failures — disabling workflow"
+            gh workflow disable check_similar.yml
+          fi

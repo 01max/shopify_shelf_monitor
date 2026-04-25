@@ -5,6 +5,7 @@ require 'logger'
 require 'yaml'
 
 require_relative 'services/product/watch_service'
+require_relative 'services/product/similar_service'
 require_relative 'services/collection/watch_service'
 require_relative 'services/report_build_service'
 
@@ -55,31 +56,37 @@ rescue StandardError
   {}
 end
 
+# @param check_type [String, nil]
 # @param watch_name [String]
 # @param params [Hash] watch config from config.yml
 # @param logger [Logger]
 # @param previous_data [Hash{String => Hash}]
 # @return [Hash] watch result
-def run_watch(watch_name, params, logger, previous_data)
+def run_watch(check_type, watch_name, params, logger, previous_data)
+  return Product::SimilarService.new(watch_name, params, logger).call if check_type == 'similar'
+
   service_class = params['type'] == 'collection' ? Collection::WatchService : Product::WatchService
   previous_products = previous_data.dig(watch_name, 'products')
   service_class.new(watch_name, params, logger, previous_products).call
 end
 
 # @param config [Hash]
-# @param check_type [String, nil] optional type filter (e.g. "products", "collection")
+# @param check_type [String, nil] optional type filter (e.g. "products", "collection", "similar")
 # @return [Hash] filtered config entries matching check_type, or all if nil
 def filter_config(config, check_type)
   return config unless check_type
 
-  config.select { |_, params| params['type'] == check_type }
+  # "similar" operates on "products" watches
+  target_type = check_type == 'similar' ? 'products' : check_type
+  config.select { |_, params| params['type'] == target_type }
 end
 
 # @return [Array<(Array<Hash>, Boolean)>] results array and success flag
 def run_all_watches(config, logger, previous_data)
+  check_type = ENV.fetch('CHECK_TYPE', nil)
   success = true
-  results = filter_config(config, ENV.fetch('CHECK_TYPE', nil)).map do |watch_name, params|
-    run_watch(watch_name, params, logger, previous_data)
+  results = filter_config(config, check_type).map do |watch_name, params|
+    run_watch(check_type, watch_name, params, logger, previous_data)
   rescue StandardError => e
     logger.error("#{watch_name}: #{e.message}")
     success = false
@@ -94,7 +101,7 @@ def main
   config = load_config(logger)
   previous_data = load_previous_data(logger)
   results, success = run_all_watches(config, logger, previous_data)
-  ReportBuildService.new(results, path: report_path).call
+  ReportBuildService.new(results, path: report_path).call unless ENV.fetch('CHECK_TYPE', nil) == 'similar'
   success
 end
 
