@@ -130,7 +130,7 @@ module Collection
 
     # @return [Boolean]
     def force_notify?
-      ENV['FORCE_NOTIFY'] == 'true'
+      ENV['FORCE_NOTIFY'] == 'true' || ENV['DEBUG']
     end
 
     # @return [Hash]

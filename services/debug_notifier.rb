@@ -26,6 +26,8 @@ class DebugNotifier
   private
 
   def append(content)
-    File.open(OUTPUT_PATH, 'a') { |f| f.puts("[#{Time.now}] #{content}") }
+    full_content = "[#{Time.now}] #{content}"
+    puts full_content
+    File.open(OUTPUT_PATH, 'a') { |f| f.puts(full_content) }
   end
 end
