@@ -187,7 +187,9 @@ RSpec.describe MessageFormatService do
       result = described_class.new('my_watch', diff).call
 
       expect(result[:text]).to include('*Removed products:*')
-      expect(result[:text]).to include('1. [Air Max 90](https://store.myshopify.com/products/air-max-90) : 120.00 ✅')
+      expect(result[:text]).to include('1. [Air Max 90](https://store.myshopify.com/products/air-max-90) : 120.00')
+      expect(result[:text]).not_to include('✅')
+      expect(result[:text]).not_to include('❌')
     end
 
     it 'combines all sections' do

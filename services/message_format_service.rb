@@ -115,9 +115,7 @@ class MessageFormatService
     return "*Removed products:* #{products.size} products removed" if products.size > PRODUCT_COUNT_LIMIT
 
     lines = products.each_with_index.map do |p, i|
-      badge = availability_badge(p['available'])
-      line = "#{i + 1}. [#{p['title']}](#{p['url']}) : #{p['price']}"
-      badge ? "#{line} #{badge}" : line
+      "#{i + 1}. [#{p['title']}](#{p['url']}) : #{p['price']}"
     end
     "*Removed products:*\n#{lines.join("\n")}"
   end
