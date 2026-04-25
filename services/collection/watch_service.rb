@@ -3,7 +3,7 @@
 require_relative '../showroom_client'
 require_relative '../product/diff_service'
 require_relative '../message_format_service'
-require_relative '../telegram/chat_service'
+require_relative '../notifier'
 
 # Orchestrates the monitoring flow for a +type: collection+ watch.
 # Fetches the collection and its products, detects changes (new/removed products,
@@ -121,7 +121,7 @@ module Collection
     # @param result [Hash] formatted message result from MessageFormatService
     # @return [void]
     def send_notifications(result)
-      telegram = Telegram::ChatService.new(**chat_params)
+      telegram = Notifier.build(**chat_params)
       telegram.send_media_group(result[:photo_urls]) if result[:photo_urls].any?
       text = result[:text]
       text ||= "[#{@watch_name}] no changes detected (force notify)" if force_notify? && result[:photo_urls].empty?
