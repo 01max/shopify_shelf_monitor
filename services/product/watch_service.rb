@@ -58,15 +58,18 @@ module Product
     # @return [Hash]
     def snapshot_base(product)
       { 'handle' => product.handle, 'title' => product.title,
-        'price' => product.price,
-        'url' => product.url,
-        'variants' => product.variants.map { |v| snapshot_variant(v) } }
+        'price' => product.price, 'url' => product.url,
+        'variants' => product.variants.map { |v| snapshot_variant(v) } }.tap do |s|
+        s['available'] = product.available? if product.availability_known?
+      end
     end
 
     # @param variant [Showroom::Variant]
     # @return [Hash]
     def snapshot_variant(variant)
-      { 'title' => variant.title, 'price' => variant.price }
+      { 'title' => variant.title, 'price' => variant.price }.tap do |s|
+        s['available'] = variant.available? if variant.availability_known?
+      end
     end
 
     # @param diff [Hash]

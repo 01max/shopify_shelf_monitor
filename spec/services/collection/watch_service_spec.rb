@@ -13,15 +13,17 @@ RSpec.describe Collection::WatchService do
     { 'type' => 'collection', 'store' => 'test.myshopify.com', 'handle' => 'new-arrivals' }
   end
 
-  let(:variant) { double('Variant', title: 'Size 10', price: '120.00', available?: true) }
+  let(:variant) { double('Variant', title: 'Size 10', price: '120.00', available?: true, availability_known?: true) }
   let(:product_a) do
     double('ProductA', handle: 'air-max-90', title: 'Air Max 90', price: '120.00',
-                       available?: true, url: 'https://test.myshopify.com/products/air-max-90',
+                       available?: true, availability_known?: true,
+                       url: 'https://test.myshopify.com/products/air-max-90',
                        main_image: nil, variants: [variant])
   end
   let(:product_b) do
     double('ProductB', handle: 'ultraboost', title: 'Ultraboost', price: '180.00',
-                       available?: true, url: 'https://test.myshopify.com/products/ultraboost',
+                       available?: true, availability_known?: true,
+                       url: 'https://test.myshopify.com/products/ultraboost',
                        main_image: nil, variants: [])
   end
 
@@ -122,7 +124,8 @@ RSpec.describe Collection::WatchService do
       let(:many_products) do
         (1..25).map do |i|
           double("Product#{i}", handle: "product-#{i}", title: "Product #{i}", price: '50.00',
-                                available?: true, url: "https://test.myshopify.com/products/product-#{i}",
+                                available?: true, availability_known?: true,
+                                url: "https://test.myshopify.com/products/product-#{i}",
                                 main_image: nil, variants: [])
         end
       end

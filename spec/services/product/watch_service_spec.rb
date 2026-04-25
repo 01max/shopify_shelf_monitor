@@ -12,15 +12,17 @@ RSpec.describe Product::WatchService do
     { 'type' => 'products', 'store' => 'test.myshopify.com', 'handles' => %w[air-max-90 ultraboost] }
   end
 
-  let(:variant) { double('Variant', title: 'Size 10', price: '120.00', available?: true) }
+  let(:variant) { double('Variant', title: 'Size 10', price: '120.00', available?: nil, availability_known?: false) }
   let(:product) do
     double('Product', handle: 'air-max-90', title: 'Air Max 90', price: '120.00',
-                      available?: true, url: 'https://test.myshopify.com/products/air-max-90',
+                      available?: nil, availability_known?: false,
+                      url: 'https://test.myshopify.com/products/air-max-90',
                       main_image: nil, variants: [variant])
   end
   let(:product2) do
     double('Product2', handle: 'ultraboost', title: 'Ultraboost', price: '180.00',
-                       available?: true, url: 'https://test.myshopify.com/products/ultraboost',
+                       available?: nil, availability_known?: false,
+                       url: 'https://test.myshopify.com/products/ultraboost',
                        main_image: nil, variants: [])
   end
 
