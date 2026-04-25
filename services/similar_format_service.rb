@@ -27,7 +27,7 @@ class SimilarFormatService
     product = entry[:product]
     header = "*[#{product[:title]}](#{product[:url]})* (#{product[:price]})"
     lines = entry[:similar].each_with_index.map do |s, i|
-      "#{i + 1}. #{s[:title]} — #{s[:price]}"
+      "#{i + 1}. [#{s[:title]}](#{s[:url]}) — #{s[:price]}"
     end
     "#{header}\n#{lines.join("\n")}"
   end

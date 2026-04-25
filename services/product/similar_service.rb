@@ -32,7 +32,10 @@ module Product
     def fetch_similar_entries
       @params.fetch('handles', []).filter_map do |handle|
         product = @client.find_product(handle)
-        similars = product.similar.map { |s| { title: s.title, handle: s.handle, price: s.price } }
+        base_url = product.url.delete_suffix("/products/#{product.handle}")
+        similars = product.similar.map do |s|
+          { title: s.title, handle: s.handle, price: s.price, url: "#{base_url}/products/#{s.handle}" }
+        end
         { product: { title: product.title, handle: product.handle, price: product.price, url: product.url },
           similar: similars }
       rescue Showroom::NotFound
