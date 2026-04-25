@@ -75,13 +75,13 @@ RSpec.describe ShowroomClient do
   end
 
   describe '#collection_products' do
-    let(:collection) { double('Collection') }
+    let(:collection) { double('Collection', products_count: nil) }
     let(:product_a) { double('ProductA', handle: 'product-a') }
     let(:product_b) { double('ProductB', handle: 'product-b') }
 
     it 'fetches all products across pages' do
+      allow(collection).to receive(:products_count).and_return(2)
       allow(collection).to receive(:products).with(limit: 250, page: 1).and_return([product_a, product_b])
-      allow(collection).to receive(:products).with(limit: 250, page: 2).and_return([])
 
       result = client.collection_products(collection)
 
@@ -89,21 +89,46 @@ RSpec.describe ShowroomClient do
     end
 
     it 'handles multiple pages' do
-      allow(collection).to receive(:products).with(limit: 250, page: 1).and_return([product_a])
-      allow(collection).to receive(:products).with(limit: 250, page: 2).and_return([product_b])
-      allow(collection).to receive(:products).with(limit: 250, page: 3).and_return([])
+      full_page = Array.new(250) { |i| double("Product#{i}", handle: "product-#{i}") }
+      partial_page = [product_a]
+      allow(collection).to receive(:products_count).and_return(251)
+      allow(collection).to receive(:products).with(limit: 250, page: 1).and_return(full_page)
+      allow(collection).to receive(:products).with(limit: 250, page: 2).and_return(partial_page)
 
       result = client.collection_products(collection)
 
-      expect(result).to eq([product_a, product_b])
+      expect(result.size).to eq(251)
+      expect(result.last).to eq(product_a)
     end
 
     it 'returns empty array for empty collection' do
+      allow(collection).to receive(:products_count).and_return(0)
       allow(collection).to receive(:products).with(limit: 250, page: 1).and_return([])
 
       result = client.collection_products(collection)
 
       expect(result).to eq([])
+    end
+
+    it 'stops when products_count is reached even if last page is full' do
+      full_page = Array.new(250) { |i| double("Product#{i}", handle: "product-#{i}") }
+      allow(collection).to receive(:products_count).and_return(250)
+      allow(collection).to receive(:products).with(limit: 250, page: 1).and_return(full_page)
+
+      result = client.collection_products(collection)
+
+      expect(result.size).to eq(250)
+      expect(collection).not_to have_received(:products).with(limit: 250, page: 2)
+    end
+
+    it 'falls back to batch size guard when products_count is nil' do
+      allow(collection).to receive(:products_count).and_return(nil)
+      allow(collection).to receive(:products).with(limit: 250, page: 1).and_return([product_a, product_b])
+
+      result = client.collection_products(collection)
+
+      expect(result).to eq([product_a, product_b])
+      expect(collection).not_to have_received(:products).with(limit: 250, page: 2)
     end
   end
 

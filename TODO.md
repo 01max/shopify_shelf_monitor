@@ -1,4 +1,3 @@
-- [x] Fix collection pagination not finishing
 - [] Fix collection pagination missing last page (index vs count ?)
 - [] Create a debug that ouput in a file instead of telegram
 - [] Run collection check once a week only on a seperate action

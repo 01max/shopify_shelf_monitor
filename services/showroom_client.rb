@@ -36,18 +36,16 @@ class ShowroomClient
   # @param collection [Showroom::Collection]
   # @return [Array<Showroom::Product>]
   def collection_products(collection)
-    products = []
-    page = 1
+    expected = collection.products_count
+    [].tap do |products|
+      (1..).each do |page|
+        batch = throttle { collection.products(limit: 250, page: page) }
+        break if batch.empty?
 
-    loop do
-      batch = throttle { collection.products(limit: 250, page: page) }
-      break if batch.empty?
-
-      products.concat(batch)
-      page += 1
+        products.concat(batch)
+        break if batch.size < 250 || (expected && products.size >= expected)
+      end
     end
-
-    products
   end
 
   private
