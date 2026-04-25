@@ -31,17 +31,22 @@ module Product
     # @return [Array<Hash>] each entry has :product (Hash) and :similar (Array<Hash>)
     def fetch_similar_entries
       @params.fetch('handles', []).filter_map do |handle|
-        product = @client.find_product(handle)
-        base_url = product.url.delete_suffix("/products/#{product.handle}")
-        similars = product.similar.map do |s|
-          { title: s.title, handle: s.handle, price: s.price, url: "#{base_url}/products/#{s.handle}" }
-        end
-        { product: { title: product.title, handle: product.handle, price: product.price, url: product.url },
-          similar: similars }
+        build_entry(@client.find_product(handle))
       rescue Showroom::NotFound
         @logger.warn("#{@watch_name}: product '#{handle}' not found, skipping")
         nil
       end
+    end
+
+    # @param product [Showroom::Product]
+    # @return [Hash]
+    def build_entry(product)
+      base_url = product.url.delete_suffix("/products/#{product.handle}")
+      similars = product.similar.map do |s|
+        { title: s.title, handle: s.handle, price: s.price, url: "#{base_url}/products/#{s.handle}" }
+      end
+      { product: { title: product.title, handle: product.handle, price: product.price, url: product.url },
+        similar: similars }
     end
 
     # @param entries [Array<Hash>]

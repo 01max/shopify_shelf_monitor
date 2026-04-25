@@ -46,7 +46,7 @@ RSpec.describe SimilarFormatService do
         { product: { title: 'Air Force 1', handle: 'air-force-1', price: '100.00',
                      url: 'https://store.com/products/air-force-1' },
           similar: [{ title: 'Dunk Low', handle: 'dunk-low', price: '110.00',
-                     url: 'https://store.com/products/dunk-low' }] }
+                      url: 'https://store.com/products/dunk-low' }] }
 
       ]
 
