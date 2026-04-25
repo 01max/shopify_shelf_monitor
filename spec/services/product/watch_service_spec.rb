@@ -55,10 +55,10 @@ RSpec.describe Product::WatchService do
       let(:previous_products) do
         [
           { 'handle' => 'air-max-90', 'title' => 'Air Max 90', 'price' => '120.00',
-            'available' => true, 'url' => 'https://test.myshopify.com/products/air-max-90',
-            'variants' => [{ 'title' => 'Size 10', 'price' => '120.00', 'available' => true }] },
+            'url' => 'https://test.myshopify.com/products/air-max-90',
+            'variants' => [{ 'title' => 'Size 10', 'price' => '120.00' }] },
           { 'handle' => 'ultraboost', 'title' => 'Ultraboost', 'price' => '180.00',
-            'available' => true, 'url' => 'https://test.myshopify.com/products/ultraboost',
+            'url' => 'https://test.myshopify.com/products/ultraboost',
             'variants' => [] }
         ]
       end
@@ -74,10 +74,10 @@ RSpec.describe Product::WatchService do
       let(:previous_products) do
         [
           { 'handle' => 'air-max-90', 'title' => 'Air Max 90', 'price' => '130.00',
-            'available' => true, 'url' => 'https://test.myshopify.com/products/air-max-90',
-            'variants' => [{ 'title' => 'Size 10', 'price' => '120.00', 'available' => true }] },
+            'url' => 'https://test.myshopify.com/products/air-max-90',
+            'variants' => [{ 'title' => 'Size 10', 'price' => '120.00' }] },
           { 'handle' => 'ultraboost', 'title' => 'Ultraboost', 'price' => '180.00',
-            'available' => true, 'url' => 'https://test.myshopify.com/products/ultraboost',
+            'url' => 'https://test.myshopify.com/products/ultraboost',
             'variants' => [] }
         ]
       end
@@ -113,10 +113,10 @@ RSpec.describe Product::WatchService do
       let(:previous_products) do
         [
           { 'handle' => 'air-max-90', 'title' => 'Air Max 90', 'price' => '120.00',
-            'available' => true, 'url' => 'https://test.myshopify.com/products/air-max-90',
-            'variants' => [{ 'title' => 'Size 10', 'price' => '120.00', 'available' => true }] },
+            'url' => 'https://test.myshopify.com/products/air-max-90',
+            'variants' => [{ 'title' => 'Size 10', 'price' => '120.00' }] },
           { 'handle' => 'ultraboost', 'title' => 'Ultraboost', 'price' => '180.00',
-            'available' => true, 'url' => 'https://test.myshopify.com/products/ultraboost',
+            'url' => 'https://test.myshopify.com/products/ultraboost',
             'variants' => [] }
         ]
       end

@@ -58,7 +58,7 @@ module Product
     # @return [Hash]
     def snapshot_base(product)
       { 'handle' => product.handle, 'title' => product.title,
-        'price' => product.price, 'available' => product.available?,
+        'price' => product.price,
         'url' => product.url,
         'variants' => product.variants.map { |v| snapshot_variant(v) } }
     end
@@ -66,7 +66,7 @@ module Product
     # @param variant [Showroom::Variant]
     # @return [Hash]
     def snapshot_variant(variant)
-      { 'title' => variant.title, 'price' => variant.price, 'available' => variant.available? }
+      { 'title' => variant.title, 'price' => variant.price }
     end
 
     # @param diff [Hash]
@@ -91,7 +91,7 @@ module Product
 
     # @return [Boolean]
     def force_notify?
-      ENV['FORCE_NOTIFY'] == 'true' || ENV['DEBUG']
+      ENV['FORCE_NOTIFY'] == 'true' || ENV.fetch('DEBUG', nil)
     end
 
     # @return [Hash]

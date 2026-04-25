@@ -79,7 +79,9 @@ class MessageFormatService
   # @param number [Integer]
   # @return [String]
   def format_new_product(product, number)
-    "#{number}. [#{product['title']}](#{product['url']}) : #{product['price']}"
+    badge = availability_badge(product['available'])
+    line = "#{number}. [#{product['title']}](#{product['url']}) : #{product['price']}"
+    badge ? "#{line} #{badge}" : line
   end
 
   # @param changes [Array<Product::DiffService::ProductChange>]
@@ -98,7 +100,9 @@ class MessageFormatService
   # @return [String]
   def format_change_entry(product_changes, index)
     first = product_changes.first
-    header = "#{index + 1}. [#{first.title}](#{first.url}):"
+    badge = availability_badge(first.current_available)
+    prefix = "#{index + 1}. [#{first.title}](#{first.url})"
+    header = badge ? "#{prefix} #{badge}:" : "#{prefix}:"
     field_lines = product_changes.map { |c| "  - #{c.field}: `#{c.previous_value}` → `#{c.current_value}`" }
     "#{header}\n#{field_lines.join("\n")}"
   end
@@ -110,7 +114,19 @@ class MessageFormatService
 
     return "*Removed products:* #{products.size} products removed" if products.size > PRODUCT_COUNT_LIMIT
 
-    lines = products.map { |p| "- #{p['handle']}" }
+    lines = products.each_with_index.map do |p, i|
+      badge = availability_badge(p['available'])
+      line = "#{i + 1}. [#{p['title']}](#{p['url']}) : #{p['price']}"
+      badge ? "#{line} #{badge}" : line
+    end
     "*Removed products:*\n#{lines.join("\n")}"
+  end
+
+  # @param available [Boolean]
+  # @return [String]
+  def availability_badge(available)
+    return nil if available.nil?
+
+    available ? '✅' : '❌'
   end
 end

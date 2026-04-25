@@ -6,7 +6,8 @@ module Product
   # Product::DiffService
   class DiffService
     # Immutable value object representing a single field change on a product or variant.
-    ProductChange = Data.define(:handle, :title, :url, :image, :field, :previous_value, :current_value)
+    ProductChange = Data.define(:handle, :title, :url, :image, :field, :previous_value, :current_value,
+                                :current_available)
 
     # Product/variant fields compared across snapshots.
     TRACKED_FIELDS = %w[price available].freeze
@@ -69,7 +70,8 @@ module Product
         field_name = prefix ? "#{prefix}.#{field}" : field
         ProductChange.new(handle: product['handle'], title: product['title'],
                           url: product['url'], image: product['image'],
-                          field: field_name, previous_value: previous[field], current_value: current[field])
+                          field: field_name, previous_value: previous[field], current_value: current[field],
+                          current_available: product['available'])
       end
     end
 

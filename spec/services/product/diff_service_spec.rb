@@ -33,7 +33,8 @@ RSpec.describe Product::DiffService do
       expect(diff[:changes]).to contain_exactly(
         described_class::ProductChange.new(handle: 'air-max-90', title: 'Air Max 90',
                                            url: 'https://store.example.com/products/air-max-90', image: nil,
-                                           field: 'price', previous_value: '130.00', current_value: '120.00')
+                                           field: 'price', previous_value: '130.00', current_value: '120.00',
+                                           current_available: true)
       )
     end
 
@@ -46,7 +47,8 @@ RSpec.describe Product::DiffService do
       expect(diff[:changes]).to contain_exactly(
         described_class::ProductChange.new(handle: 'air-max-90', title: 'Air Max 90',
                                            url: 'https://store.example.com/products/air-max-90', image: nil,
-                                           field: 'available', previous_value: true, current_value: false)
+                                           field: 'available', previous_value: true, current_value: false,
+                                           current_available: false)
       )
     end
 
@@ -60,7 +62,8 @@ RSpec.describe Product::DiffService do
         described_class::ProductChange.new(handle: 'air-max-90', title: 'Air Max 90',
                                            url: 'https://store.example.com/products/air-max-90', image: nil,
                                            field: 'variant[Size 10].price',
-                                           previous_value: '130.00', current_value: '120.00')
+                                           previous_value: '130.00', current_value: '120.00',
+                                           current_available: true)
       )
     end
 
@@ -74,7 +77,8 @@ RSpec.describe Product::DiffService do
         described_class::ProductChange.new(handle: 'air-max-90', title: 'Air Max 90',
                                            url: 'https://store.example.com/products/air-max-90', image: nil,
                                            field: 'variant[Size 10].available',
-                                           previous_value: true, current_value: false)
+                                           previous_value: true, current_value: false,
+                                           current_available: true)
       )
     end
 
