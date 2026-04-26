@@ -41,6 +41,10 @@ def resolve_config_key(config, config_key, telegram)
   auto_detect_key(config, telegram)
 end
 
+# @param config [Hash] parsed config.yml
+# @param config_key [String] explicit key to validate
+# @param telegram [Telegram::ChatService]
+# @return [String, nil] the key if valid, or nil (error delivered via telegram)
 def resolve_explicit_key(config, config_key, telegram)
   return config_key if config[config_key]&.fetch('type', nil) == 'products'
 
@@ -48,6 +52,9 @@ def resolve_explicit_key(config, config_key, telegram)
   nil
 end
 
+# @param config [Hash] parsed config.yml
+# @param telegram [Telegram::ChatService]
+# @return [String, nil] the sole products key, or nil (error delivered via telegram)
 def auto_detect_key(config, telegram)
   keys = config.select { |_, v| v['type'] == 'products' }.keys
   return keys.first if keys.size == 1
@@ -56,29 +63,40 @@ def auto_detect_key(config, telegram)
   notify_ambiguous_products_keys(keys, telegram)
 end
 
+# @param telegram [Telegram::ChatService]
+# @return [nil]
 def notify_no_products_key(telegram)
   telegram.deliver('No products watch found in config')
   nil
 end
 
+# @param keys [Array<String>] all products watch keys found in config
+# @param telegram [Telegram::ChatService]
+# @return [nil]
 def notify_ambiguous_products_keys(keys, telegram)
   list = keys.map { |k| "`#{k}`" }.join(', ')
   telegram.deliver("Multiple products watches — pass the key as second argument.\nAvailable: #{list}")
   nil
 end
 
-# @param logger [Logger]
+# @return [Logger]
 def build_logger
   logger = Logger.new($stdout)
   logger.progname = 'shelf-commands'
   logger
 end
 
+# @param telegram [Telegram::ChatService]
+# @return [void]
 def handle_config(telegram)
   body = File.exist?(CONFIG_PATH) ? File.read(CONFIG_PATH) : '(config.yml not found)'
   telegram.deliver("Unfig:\n```\n#{body}\n```")
 end
 
+# @param command [Hash] command hash with +:args+ key
+# @param telegram [Telegram::ChatService]
+# @param logger [Logger]
+# @return [void]
 def handle_add(command, telegram, logger)
   url, config_key = command[:args]
   logger.info("/add received — url=#{url.inspect} key=#{config_key.inspect}")
@@ -90,6 +108,11 @@ def handle_add(command, telegram, logger)
   add_handle_to_config(handle, config_key, telegram, logger)
 end
 
+# @param handle [String] product handle to append
+# @param config_key [String, nil] explicit watch key, or nil to auto-detect
+# @param telegram [Telegram::ChatService]
+# @param logger [Logger]
+# @return [void]
 def add_handle_to_config(handle, config_key, telegram, logger)
   config = YAML.safe_load_file(CONFIG_PATH)
   key = resolve_config_key(config, config_key, telegram)

@@ -45,6 +45,7 @@ module Telegram
 
     private
 
+    # @return [Array<Hash>] raw Telegram update objects, or +[]+ on failure
     def fetch_updates
       query = { timeout: 0 }
       query[:offset] = @since_update_id + 1 if @since_update_id
@@ -58,10 +59,15 @@ module Telegram
       []
     end
 
+    # Advances the bot's read cursor so processed updates are not replayed.
+    # @param last_update_id [Integer]
+    # @return [void]
     def ack(last_update_id)
       HTTParty.get(api_url('getUpdates'), query: { offset: last_update_id + 1, timeout: 0 })
     end
 
+    # @param update [Hash] raw Telegram update object
+    # @return [Hash, nil] command hash with +:type+ and +:args+, or +nil+ if not a recognized command
     def detect_command(update)
       message = update['message'] || update['channel_post']
       return nil unless message
@@ -76,6 +82,8 @@ module Telegram
       { type: command_type, args: parts[1..] }
     end
 
+    # @param method [String] Telegram Bot API method name (e.g. +"getUpdates"+)
+    # @return [String] full API URL for the method
     def api_url(method)
       "https://api.telegram.org/bot#{ENV.fetch('TELEGRAM_BOT_TOKEN')}/#{method}"
     end

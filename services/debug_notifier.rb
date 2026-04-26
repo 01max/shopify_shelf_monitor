@@ -7,6 +7,7 @@
 class DebugNotifier
   OUTPUT_PATH = File.join('tmp', 'debug_output.txt')
 
+  # @param _opts [Hash] ignored; accepted for duck-type compatibility with +Telegram::ChatService+
   def initialize(**_opts)
     FileUtils.mkdir_p(File.dirname(OUTPUT_PATH))
   end
@@ -25,6 +26,8 @@ class DebugNotifier
 
   private
 
+  # @param content [String] message line to timestamp and persist
+  # @return [void]
   def append(content)
     full_content = "[#{Time.now}] #{content}"
     puts full_content
