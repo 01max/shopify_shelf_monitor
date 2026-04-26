@@ -103,7 +103,9 @@ def handle_add(command, telegram, logger)
   return telegram.deliver('Usage: /add <product_url> [config_key]') unless url
 
   handle = extract_handle(url)
-  return telegram.deliver("Could not extract handle from `#{url}`\nExpected: `https://<store>/products/<handle>`") unless handle
+  unless handle
+    return telegram.deliver("Could not extract handle from `#{url}`\nExpected: `https://<store>/products/<handle>`")
+  end
 
   add_handle_to_config(handle, config_key, telegram, logger)
 end
