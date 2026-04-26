@@ -41,9 +41,8 @@ module Product
     # @param product [Showroom::Product]
     # @return [Hash]
     def build_entry(product)
-      base_url = product.url.delete_suffix("/products/#{product.handle}")
       similars = product.similar.map do |s|
-        { title: s.title, handle: s.handle, price: s.price, url: "#{base_url}/products/#{s.handle}" }
+        { title: s.title, handle: s.handle, price: s.price, url: s.url }
       end
       { product: { title: product.title, handle: product.handle, price: product.price, url: product.url },
         similar: similars }
