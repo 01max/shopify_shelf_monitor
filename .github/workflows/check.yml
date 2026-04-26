@@ -34,8 +34,19 @@ jobs:
           if_no_artifact_found: ignore
         continue-on-error: true
 
-      - name: Write config
-        run: echo "$SHELF_MONITOR_CONFIG" > config.yml
+      - name: Download config
+        uses: dawidd6/action-download-artifact@v20
+        with:
+          name: config
+          path: .
+          if_no_artifact_found: ignore
+        continue-on-error: true
+
+      - name: Write config from secret if not restored
+        run: |
+          if [ ! -f config.yml ]; then
+            echo "$SHELF_MONITOR_CONFIG" > config.yml
+          fi
         env:
           SHELF_MONITOR_CONFIG: ${{ secrets.SHELF_MONITOR_CONFIG }}
 

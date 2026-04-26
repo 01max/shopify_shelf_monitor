@@ -1,12 +1,12 @@
-name: Check Similar Products
+name: Poll Telegram Commands
 
 on:
   schedule:
-    - cron: "0 6 * * 2"
+    - cron: "0 */6 * * *"
   workflow_dispatch:
 
 jobs:
-  check:
+  poll:
     runs-on: ubuntu-latest
     permissions:
       actions: write
@@ -20,6 +20,14 @@ jobs:
         with:
           ruby-version: '3.4'
           bundler-cache: true
+
+      - name: Download previous command state
+        uses: dawidd6/action-download-artifact@v20
+        with:
+          name: command-state
+          path: tmp/previous
+          if_no_artifact_found: ignore
+        continue-on-error: true
 
       - name: Download config
         uses: dawidd6/action-download-artifact@v20
@@ -37,20 +45,24 @@ jobs:
         env:
           SHELF_MONITOR_CONFIG: ${{ secrets.SHELF_MONITOR_CONFIG }}
 
-      - name: Run similar products check
-        run: bundle exec ruby check.rb
+      - name: Poll commands
+        run: bundle exec ruby poll_commands.rb
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_DEFAULT_CHAT_ID: ${{ secrets.TELEGRAM_DEFAULT_CHAT_ID }}
-          CHECK_TYPE: similar
 
-      - name: Disable workflow after 3 consecutive failures
-        if: failure()
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          recent=$(gh run list --workflow=check_similar.yml --limit=3 --json conclusion --jq '[.[].conclusion]')
-          if [ "$recent" = '["failure","failure","failure"]' ]; then
-            echo "3 consecutive failures — disabling workflow"
-            gh workflow disable check_similar.yml
-          fi
+      - name: Upload command state
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: command-state
+          path: tmp/command_state.json
+          retention-days: 7
+
+      - name: Upload config
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: config
+          path: config.yml
+          retention-days: 90
