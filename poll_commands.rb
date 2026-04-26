@@ -36,29 +36,35 @@ end
 # @param config_key [String, nil] explicit key supplied by the user, or nil to auto-detect
 # @return [String, nil] resolved key, or nil on error (error already delivered via telegram)
 def resolve_config_key(config, config_key, telegram)
-  if config_key
-    entry = config[config_key]
-    unless entry && entry['type'] == 'products'
-      telegram.deliver("Unknown products key `#{config_key}`")
-      return nil
-    end
+  return resolve_explicit_key(config, config_key, telegram) if config_key
 
-    return config_key
-  end
+  auto_detect_key(config, telegram)
+end
 
-  products_keys = config.select { |_, v| v['type'] == 'products' }.keys
-  case products_keys.size
-  when 1 then products_keys.first
-  when 0
-    telegram.deliver('No products watch found in config')
-    nil
-  else
-    telegram.deliver(
-      "Multiple products watches — pass the key as second argument.\n" \
-      "Available: #{products_keys.map { |k| "`#{k}`" }.join(', ')}"
-    )
-    nil
-  end
+def resolve_explicit_key(config, config_key, telegram)
+  return config_key if config[config_key]&.fetch('type', nil) == 'products'
+
+  telegram.deliver("Unknown products key `#{config_key}`")
+  nil
+end
+
+def auto_detect_key(config, telegram)
+  keys = config.select { |_, v| v['type'] == 'products' }.keys
+  return keys.first if keys.size == 1
+  return notify_no_products_key(telegram) if keys.empty?
+
+  notify_ambiguous_products_keys(keys, telegram)
+end
+
+def notify_no_products_key(telegram)
+  telegram.deliver('No products watch found in config')
+  nil
+end
+
+def notify_ambiguous_products_keys(keys, telegram)
+  list = keys.map { |k| "`#{k}`" }.join(', ')
+  telegram.deliver("Multiple products watches — pass the key as second argument.\nAvailable: #{list}")
+  nil
 end
 
 # @param logger [Logger]
@@ -66,6 +72,36 @@ def build_logger
   logger = Logger.new($stdout)
   logger.progname = 'shelf-commands'
   logger
+end
+
+def handle_config(telegram)
+  body = File.exist?(CONFIG_PATH) ? File.read(CONFIG_PATH) : '(config.yml not found)'
+  telegram.deliver("Unfig:\n```\n#{body}\n```")
+end
+
+def handle_add(command, telegram, logger)
+  url, config_key = command[:args]
+  logger.info("/add received — url=#{url.inspect} key=#{config_key.inspect}")
+  return telegram.deliver('Usage: /add <product_url> [config_key]') unless url
+
+  handle = extract_handle(url)
+  return telegram.deliver("Could not extract handle from `#{url}`\nExpected: `https://<store>/products/<handle>`") unless handle
+
+  add_handle_to_config(handle, config_key, telegram, logger)
+end
+
+def add_handle_to_config(handle, config_key, telegram, logger)
+  config = YAML.safe_load_file(CONFIG_PATH)
+  key = resolve_config_key(config, config_key, telegram)
+  return unless key
+
+  handles = config[key]['handles'] ||= []
+  return telegram.deliver("`#{handle}` is already in `#{key}`") if handles.include?(handle)
+
+  handles << handle
+  File.write(CONFIG_PATH, config.to_yaml)
+  logger.info("Added #{handle} to #{key}")
+  telegram.deliver("Added `#{handle}` to `#{key}`")
 end
 
 logger = build_logger
@@ -77,7 +113,7 @@ rescue StandardError
   nil
 end || 0
 
-poller  = Telegram::CommandPoller.new(since_update_id: since_update_id)
+poller = Telegram::CommandPoller.new(since_update_id: since_update_id)
 commands = poller.commands
 telegram = Telegram::ChatService.new
 
@@ -85,41 +121,9 @@ commands.each do |command|
   case command[:type]
   when :config
     logger.info('/config received — sending current config')
-    body = File.exist?(CONFIG_PATH) ? File.read(CONFIG_PATH) : '(config.yml not found)'
-    telegram.deliver("Unfig:\n```\n#{body}\n```")
-
+    handle_config(telegram)
   when :add
-    url, config_key = command[:args]
-    logger.info("/add received — url=#{url.inspect} key=#{config_key.inspect}")
-
-    unless url
-      telegram.deliver('Usage: /add <product_url> [config_key]')
-      next
-    end
-
-    handle = extract_handle(url)
-    unless handle
-      telegram.deliver(
-        "Could not extract handle from `#{url}`\n" \
-        'Expected: `https://<store>/products/<handle>`'
-      )
-      next
-    end
-
-    config = YAML.safe_load_file(CONFIG_PATH)
-    key = resolve_config_key(config, config_key, telegram)
-    next unless key
-
-    handles = config[key]['handles'] ||= []
-    if handles.include?(handle)
-      telegram.deliver("#{handle}` is already in `#{key}`")
-      next
-    end
-
-    handles << handle
-    File.write(CONFIG_PATH, config.to_yaml)
-    logger.info("Added #{handle} to #{key}")
-    telegram.deliver("Added `#{handle}` to `#{key}`")
+    handle_add(command, telegram, logger)
   end
 end
 

@@ -17,7 +17,7 @@ RSpec.describe Product::SimilarService do
 
   describe '#call' do
     let(:similar_product) do
-      double('ProductSuggestion', title: 'Air Max 95', handle: 'air-max-95', price: '180.00')
+      double('ProductSuggestion', title: 'Air Max 95', handle: 'air-max-95', price: '180.00', url: 'https://store.com/products/air-max-95')
     end
     let(:product) do
       double('Product', title: 'Air Max 90', handle: 'air-max-90',
