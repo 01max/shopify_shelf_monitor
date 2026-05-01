@@ -22,7 +22,7 @@ jobs:
           bundler-cache: true
 
       - name: Download previous command state
-        uses: dawidd6/action-download-artifact@v20
+        uses: dawidd6/action-download-artifact@v21
         with:
           name: command-state
           path: tmp/previous
@@ -30,7 +30,7 @@ jobs:
         continue-on-error: true
 
       - name: Download config
-        uses: dawidd6/action-download-artifact@v20
+        uses: dawidd6/action-download-artifact@v21
         with:
           name: config
           path: .
