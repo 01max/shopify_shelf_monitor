@@ -27,7 +27,7 @@ jobs:
           bundler-cache: true
 
       - name: Download previous report
-        uses: dawidd6/action-download-artifact@v20
+        uses: dawidd6/action-download-artifact@v21
         with:
           name: report-collections
           path: tmp
@@ -35,7 +35,7 @@ jobs:
         continue-on-error: true
 
       - name: Download config
-        uses: dawidd6/action-download-artifact@v20
+        uses: dawidd6/action-download-artifact@v21
         with:
           name: config
           path: .
