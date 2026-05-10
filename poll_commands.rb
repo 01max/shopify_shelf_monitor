@@ -90,7 +90,7 @@ end
 # @return [void]
 def handle_config(telegram)
   body = File.exist?(CONFIG_PATH) ? File.read(CONFIG_PATH) : '(config.yml not found)'
-  telegram.deliver("Unfig:\n```\n#{body}\n```")
+  telegram.deliver("Config:\n```\n#{body}\n```")
 end
 
 # @param command [Hash] command hash with +:args+ key
