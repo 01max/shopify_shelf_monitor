@@ -27,7 +27,6 @@ jobs:
           name: config
           path: .
           if_no_artifact_found: ignore
-        continue-on-error: true
 
       - name: Write config from secret if not restored
         run: |
