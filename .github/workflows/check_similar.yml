@@ -21,18 +21,8 @@ jobs:
           ruby-version: '3.4'
           bundler-cache: true
 
-      - name: Download config
-        uses: dawidd6/action-download-artifact@v21
-        with:
-          name: config
-          path: .
-          if_no_artifact_found: ignore
-
-      - name: Write config from secret if not restored
-        run: |
-          if [ ! -f config.yml ]; then
-            echo "$SHELF_MONITOR_CONFIG" > config.yml
-          fi
+      - name: Write config
+        run: echo "$SHELF_MONITOR_CONFIG" > config.yml
         env:
           SHELF_MONITOR_CONFIG: ${{ secrets.SHELF_MONITOR_CONFIG }}
 
