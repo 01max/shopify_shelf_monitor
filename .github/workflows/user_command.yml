@@ -17,7 +17,15 @@ jobs:
           ruby-version: '3.4'
           bundler-cache: true
 
-      - name: Write config
+      - name: Download config
+        uses: dawidd6/action-download-artifact@v21
+        with:
+          name: config
+          path: .
+          if_no_artifact_found: ignore
+        continue-on-error: true
+
+      - name: Write config from secret if not restored
         run: |
           if [ ! -f config.yml ]; then
             echo "$SHELF_MONITOR_CONFIG" > config.yml
@@ -34,3 +42,11 @@ jobs:
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           GITHUB_TOKEN: ${{ github.token }}
+
+      - name: Upload config
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: config
+          path: config.yml
+          retention-days: 90
