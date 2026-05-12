@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'httparty'
+require 'json'
 
 module Telegram
   # Sends messages to a Telegram chat via the Bot API.
