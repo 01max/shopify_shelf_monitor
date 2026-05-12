@@ -25,7 +25,7 @@ jobs:
         env:
           SHELF_MONITOR_CONFIG: ${{ secrets.SHELF_MONITOR_CONFIG }}
 
-      - uses: 01max/telegram-gh-action-dispatcher@v3
+      - uses: 01max/telegram-gh-action-dispatcher@v4
         with:
           command: ${{ github.event.client_payload.command }}
           chat_id: ${{ github.event.client_payload.chat_id }}
