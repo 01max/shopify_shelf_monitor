@@ -43,6 +43,13 @@ jobs:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           GITHUB_TOKEN: ${{ github.token }}
 
+      - name: Persist config to secret
+        if: always()
+        run: |
+          if [ -s config.yml ]; then
+            gh secret set SHELF_MONITOR_CONFIG --body "$(cat config.yml)" --repo ${{ github.repository }}
+          fi
+
       - name: Upload config
         if: always()
         uses: actions/upload-artifact@v7
