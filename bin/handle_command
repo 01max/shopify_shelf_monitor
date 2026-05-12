@@ -97,6 +97,18 @@ when 'add'
     chat.deliver('Usage: /add <product_url> [config_key]')
   end
 
+when 'check_products'
+  logger.info('/check_products received — triggering check workflow')
+  repo = ENV.fetch('GITHUB_REPOSITORY')
+  system('gh', 'workflow', 'run', 'check.yml', '--repo', repo)
+  chat.deliver('Products check triggered. You\'ll be notified if stock changes are detected.')
+
+when 'check_similar'
+  logger.info('/check_similar received — triggering similar products workflow')
+  repo = ENV.fetch('GITHUB_REPOSITORY')
+  system('gh', 'workflow', 'run', 'check_similar.yml', '--repo', repo)
+  chat.deliver('Similar products check triggered. You\'ll be notified if stock changes are detected.')
+
 else
   logger.warn("Unknown command: #{command}")
   chat.deliver("Unknown command: `#{command}`.")
