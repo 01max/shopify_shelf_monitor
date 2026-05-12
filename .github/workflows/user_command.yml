@@ -50,7 +50,7 @@ jobs:
             gh secret set SHELF_MONITOR_CONFIG --body "$(cat config.yml)" --repo ${{ github.repository }}
           fi
         env:
-          GH_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ secrets.CONFIG_SYNC_TOKEN }}
 
       - name: Upload config
         if: always()
