@@ -21,8 +21,10 @@ module Telegram
     attr_reader :chat_id
 
     # @param chat_id [String] Telegram chat ID; defaults to +TELEGRAM_DEFAULT_CHAT_ID+
-    def initialize(chat_id: ENV.fetch('TELEGRAM_DEFAULT_CHAT_ID'))
+    # @param bot_token [String, nil] bot token; falls back to +TELEGRAM_BOT_TOKEN+ env var
+    def initialize(chat_id: ENV.fetch('TELEGRAM_DEFAULT_CHAT_ID'), bot_token: nil)
       @chat_id = chat_id
+      @bot_token = bot_token || ENV.fetch('TELEGRAM_BOT_TOKEN')
     end
 
     # Posts a message to the configured chat.
@@ -99,7 +101,7 @@ module Telegram
     # @param method [String] Bot API method name (e.g. "sendMessage")
     # @return [String]
     def api_url(method)
-      "https://api.telegram.org/bot#{ENV.fetch('TELEGRAM_BOT_TOKEN')}/#{method}"
+      "https://api.telegram.org/bot#{@bot_token}/#{method}"
     end
 
     # @param text [String]

@@ -1,0 +1,103 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+# Called by the telegram-gh-action-dispatcher action (handler.sh).
+# Receives 4 positional arguments:
+#   bin/handle_command <command> <chat_id> <args> <bot_token>
+
+require 'logger'
+require 'uri'
+require 'yaml'
+
+command, chat_id, args, bot_token = ARGV
+
+require 'bundler/setup'
+require_relative '../services/telegram/chat_service'
+
+CONFIG_PATH = File.expand_path('../config.yml', __dir__)
+
+chat = Telegram::ChatService.new(chat_id: chat_id, bot_token: bot_token)
+logger = Logger.new($stdout)
+logger.progname = 'handle_command'
+
+case command
+when 'config'
+  logger.info('/config received — sending current config')
+  body = File.exist?(CONFIG_PATH) ? File.read(CONFIG_PATH) : '(config.yml not found)'
+  chat.deliver("Config:\n```\n#{body}\n```")
+
+when 'add'
+  url, config_key = args.split(/\s+/, 2)
+  logger.info("/add received — url=#{url.inspect} key=#{config_key.inspect}")
+
+  if url
+    handle = extract_handle(url)
+    if handle
+      add_handle_to_config(handle, config_key, chat, logger)
+    else
+      chat.deliver("Could not extract handle from `#{url}`\nExpected: `https://<store>/products/<handle>`")
+    end
+  else
+    chat.deliver('Usage: /add <product_url> [config_key]')
+  end
+
+else
+  logger.warn("Unknown command: #{command}")
+  chat.deliver("Unknown command: `#{command}`.")
+end
+
+def extract_handle(url)
+  path = URI.parse(url).path
+  segments = path.split('/').reject(&:empty?)
+  return nil unless segments[-2] == 'products'
+
+  segments.last
+rescue URI::InvalidURIError
+  nil
+end
+
+def resolve_config_key(config, config_key, telegram)
+  return resolve_explicit_key(config, config_key, telegram) if config_key
+
+  auto_detect_key(config, telegram)
+end
+
+def resolve_explicit_key(config, config_key, telegram)
+  return config_key if config[config_key]&.fetch('type', nil) == 'products'
+
+  telegram.deliver("Unknown products key `#{config_key}`")
+  nil
+end
+
+def auto_detect_key(config, telegram)
+  keys = config.select { |_, v| v['type'] == 'products' }.keys
+  return keys.first if keys.size == 1
+  return notify_no_products_key(telegram) if keys.empty?
+
+  notify_ambiguous_products_keys(keys, telegram)
+end
+
+def notify_no_products_key(telegram)
+  telegram.deliver('No products watch found in config')
+  nil
+end
+
+def notify_ambiguous_products_keys(keys, telegram)
+  list = keys.map { |k| "`#{k}`" }.join(', ')
+  telegram.deliver("Multiple products watches — pass the key as second argument.\nAvailable: #{list}")
+  nil
+end
+
+def add_handle_to_config(handle, config_key, telegram, logger)
+  config = YAML.safe_load_file(CONFIG_PATH)
+  key = resolve_config_key(config, config_key, telegram)
+  return unless key
+
+  handles = config[key]['handles'] ||= []
+  return telegram.deliver("`#{handle}` is already in `#{key}`") if handles.include?(handle)
+
+  handles << handle
+  File.write(CONFIG_PATH, config.to_yaml)
+  logger.info("Added #{handle} to #{key}")
+  telegram.deliver("Added `#{handle}` to `#{key}`")
+end
