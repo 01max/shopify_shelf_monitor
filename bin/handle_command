@@ -20,32 +20,6 @@ chat = Telegram::ChatService.new(chat_id: chat_id, bot_token: bot_token)
 logger = Logger.new($stdout)
 logger.progname = 'handle_command'
 
-case command
-when 'config'
-  logger.info('/config received — sending current config')
-  body = File.exist?(CONFIG_PATH) ? File.read(CONFIG_PATH) : '(config.yml not found)'
-  chat.deliver("Config:\n```\n#{body}\n```")
-
-when 'add'
-  url, config_key = args.split(/\s+/, 2)
-  logger.info("/add received — url=#{url.inspect} key=#{config_key.inspect}")
-
-  if url
-    handle = extract_handle(url)
-    if handle
-      add_handle_to_config(handle, config_key, chat, logger)
-    else
-      chat.deliver("Could not extract handle from `#{url}`\nExpected: `https://<store>/products/<handle>`")
-    end
-  else
-    chat.deliver('Usage: /add <product_url> [config_key]')
-  end
-
-else
-  logger.warn("Unknown command: #{command}")
-  chat.deliver("Unknown command: `#{command}`.")
-end
-
 def extract_handle(url)
   path = URI.parse(url).path
   segments = path.split('/').reject(&:empty?)
@@ -100,4 +74,30 @@ def add_handle_to_config(handle, config_key, telegram, logger)
   File.write(CONFIG_PATH, config.to_yaml)
   logger.info("Added #{handle} to #{key}")
   telegram.deliver("Added `#{handle}` to `#{key}`")
+end
+
+case command
+when 'config'
+  logger.info('/config received — sending current config')
+  body = File.exist?(CONFIG_PATH) ? File.read(CONFIG_PATH) : '(config.yml not found)'
+  chat.deliver("Config:\n```\n#{body}\n```")
+
+when 'add'
+  url, config_key = args.split(/\s+/, 2)
+  logger.info("/add received — url=#{url.inspect} key=#{config_key.inspect}")
+
+  if url
+    handle = extract_handle(url)
+    if handle
+      add_handle_to_config(handle, config_key, chat, logger)
+    else
+      chat.deliver("Could not extract handle from `#{url}`\nExpected: `https://<store>/products/<handle>`")
+    end
+  else
+    chat.deliver('Usage: /add <product_url> [config_key]')
+  end
+
+else
+  logger.warn("Unknown command: #{command}")
+  chat.deliver("Unknown command: `#{command}`.")
 end
