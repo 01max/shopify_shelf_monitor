@@ -5,13 +5,13 @@
 # Receives 4 positional arguments:
 #   bin/handle_command <command> <chat_id> <args> <bot_token>
 
+require 'bundler/setup'
+
 require 'logger'
 require 'uri'
 require 'yaml'
 
 command, chat_id, args, bot_token = ARGV
-
-require 'bundler/setup'
 require_relative '../services/telegram/chat_service'
 
 CONFIG_PATH = File.expand_path('../config.yml', __dir__)
