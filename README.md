@@ -44,12 +44,6 @@ Force a notification even if nothing changed:
 FORCE_NOTIFY=true bundle exec ruby check.rb
 ```
 
-Poll pending Telegram commands:
-
-```bash
-bundle exec ruby poll_commands.rb
-```
-
 ### GitHub Actions
 
 1. Push the repository to GitHub
@@ -68,17 +62,17 @@ Four workflows run on schedule:
 | `check.yml` | Every 4 hours | Checks product watches for price/availability changes |
 | `check_collections.yml` | Mondays at 6 UTC | Checks collection watches |
 | `check_similar.yml` | Tuesdays at 6 UTC | Sends a similar-products digest for each product watch |
-| `poll_commands.yml` | Every 6 hours | Processes pending Telegram bot commands |
+| `user_command.yml` | On `repository_dispatch` | Processes Telegram bot commands via webhook (instant) |
 
 All workflows can also be triggered manually from the Actions tab. Product and collection checks accept a `force_notify` flag.
 
 Each workflow auto-disables after 3 consecutive failures to avoid silent breakage.
 
-**Config persistence:** when a `/add` command modifies `config.yml`, the updated file is uploaded as a `config` artifact. Subsequent workflow runs restore it before falling back to the `SHELF_MONITOR_CONFIG` secret, so changes survive across runs without a code push.
+**Config persistence:** when a `/add` command modifies `config.yml`, the updated file is uploaded as a `config` artifact (from `check.yml`). Subsequent workflow runs restore it before falling back to the `SHELF_MONITOR_CONFIG` secret.
 
 ## Telegram commands
 
-Send commands from the chat identified by `TELEGRAM_DEFAULT_CHAT_ID`. The bot processes them the next time the `poll_commands` workflow runs (within 6 hours).
+Commands are sent from the authorized chat and processed instantly via a Cloudflare Worker webhook. See [01max/telegram-gh-action-dispatcher](https://github.com/01max/telegram-gh-action-dispatcher) for deployment and setup of the worker.
 
 ### `/config`
 
