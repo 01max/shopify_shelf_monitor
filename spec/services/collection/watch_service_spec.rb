@@ -137,21 +137,23 @@ RSpec.describe Collection::WatchService do
       it 'sends multiple notifications' do
         described_class.new('my_watch', params, logger).call
 
-        expect(chat_service).to have_received(:deliver).twice
+        expect(chat_service).to have_received(:deliver).exactly(3).times
       end
 
-      it 'first batch contains products 1-20, second batch contains products 21-25' do
+      it 'batches products in groups of 10' do
         described_class.new('my_watch', params, logger).call
 
-        expect(chat_service).to have_received(:deliver).with(/Product 1/).once
+        expect(chat_service).to have_received(:deliver).with(/Product 5/).once
+        expect(chat_service).to have_received(:deliver).with(/Product 15/).once
         expect(chat_service).to have_received(:deliver).with(/Product 21/).once
       end
 
       it 'includes pagination suffix in each message' do
         described_class.new('my_watch', params, logger).call
 
-        expect(chat_service).to have_received(:deliver).with(%r{\(1/2\)}).once
-        expect(chat_service).to have_received(:deliver).with(%r{\(2/2\)}).once
+        expect(chat_service).to have_received(:deliver).with(%r{\(1/3\)}).once
+        expect(chat_service).to have_received(:deliver).with(%r{\(2/3\)}).once
+        expect(chat_service).to have_received(:deliver).with(%r{\(3/3\)}).once
       end
     end
 

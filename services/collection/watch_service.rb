@@ -11,7 +11,7 @@ require_relative '../notifier'
 module Collection
   # Collection::WatchService
   class WatchService
-    SEND_BATCH_SIZE = 20
+    SEND_BATCH_SIZE = 10
 
     # @param watch_name [String]
     # @param params [Hash] watch config from config.yml
