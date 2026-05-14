@@ -4,7 +4,7 @@
 class MessageFormatService
   # Maximum number of individual products to list before summarising with a count.
   IMAGE_COUNT_LIMIT = 10
-  PRODUCT_COUNT_LIMIT = 20
+  PRODUCT_COUNT_LIMIT = 10
 
   # @param watch_name [String] watch identifier used as the message heading
   # @param diff [Hash] diff hash with :new_products, :removed_products, :changes keys
