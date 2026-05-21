@@ -52,7 +52,7 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: report-collections
-          path: tmp/report-collections.json
+          path: tmp/report-collection.json
           retention-days: 7
 
       - name: Disable workflow after 3 consecutive failures
