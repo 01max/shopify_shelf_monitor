@@ -139,4 +139,4 @@ bundle exec rubocop
 
 ## License
 
-GPL-3.0-or-later
+This project is licensed under [GPL-3.0-or-later](LICENSE).
