@@ -27,7 +27,7 @@ jobs:
           bundler-cache: true
 
       - name: Download previous report
-        uses: dawidd6/action-download-artifact@v21
+        uses: dawidd6/action-download-artifact@v24
         with:
           name: report-products
           path: tmp
